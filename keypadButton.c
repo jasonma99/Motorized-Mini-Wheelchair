@@ -113,6 +113,8 @@ void Key()
                     LCD_Display_letter(pos3, 5); // F
                     LCD_Display_letter(pos4, 19); // T
                     speed = 0;
+                    P1OUT |= 0x01; // turn on red LED P1.0
+                    P4OUT &= 0x00; // turn off green LED P4.0
                 }
             }
 
@@ -126,7 +128,9 @@ void Key()
                 LCD_Display_letter(pos4, 7); // H
                 LCD_Display_letter(pos5, 19); // T
                 speed = 0;
-            } else {
+                P1OUT |= 0x01; // turn on red LED P1.0
+                P4OUT &= 0x00; // turn off green LED P4.0
+        } else {
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
 //                    LCD_Clear();
@@ -146,7 +150,6 @@ void Key()
                     LCD_Display_Buttons(1);
                 }
             }
-
         }
         setRowsLow();
 }
