@@ -21,7 +21,7 @@ void toggleLED();
 void glow(void);
 void poll();
 
-int ledOn = 0x0;
+int ledOn;
 //TI_second = 0;
 
 void glow (void)
@@ -29,6 +29,7 @@ void glow (void)
     // 2.5 trigger
     // 2.7 echo
     // 5.0 LED/motor
+    ledOn = 0x0;
     GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN5);
     GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
 
