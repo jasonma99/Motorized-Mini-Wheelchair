@@ -20,6 +20,8 @@ char hexaKeys[4][3] = {
   {'*','0','#'}
 };
 
+void setRowsHigh();
+void setRowsLow();
 void Key();
 char pressedKey;
 int speed;
@@ -44,8 +46,8 @@ void main (void)
 
     // ROWS ARE OUTPUTS
     GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN4);                  // Row 1: Output direction
-    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4);
-
+    GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN6);                  // Row 2: Output direction
+    setRowsLow();
 
     // COLUMNS ARE ISR TRIGGERS
 
@@ -60,13 +62,6 @@ void main (void)
     GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P1, GPIO_PIN3);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN3);
     GPIO_enableInterrupt(GPIO_PORT_P1, GPIO_PIN3);
-
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P5, GPIO_PIN0, GPIO_PRIMARY_MODULE_FUNCTION);     // Column 3: Input direction
-    GPIO_selectInterruptEdge(GPIO_PORT_P5, GPIO_PIN0, GPIO_HIGH_TO_LOW_TRANSITION);
-    GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P5, GPIO_PIN0);
-    GPIO_clearInterrupt(GPIO_PORT_P5, GPIO_PIN0);
-    GPIO_enableInterrupt(GPIO_PORT_P5, GPIO_PIN0);
-
 
     _EINT();        // Start interrupt
 
@@ -83,45 +78,78 @@ void toggleLEDs(){
     P4OUT ^= 0x01; // toggle green LED P4.0
 }
 
+void setRowsHigh(){
+    GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
+    GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
+}
+
+void setRowsLow(){
+    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
+    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
+}
+
 void Key()
 {
-
-        GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- LOW
+        setRowsLow();
         if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_LOW){     // Column 1 to GND
-            LCD_Clear();
-            if (speed < 9) {
-                speed++;
-            }
-            LCD_Display_digit(pos6, speed);
-            LCD_Display_Buttons(1);
-            if (speed == 1) {
-                toggleLEDs();
-            }
-        }
-        GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
-
-        GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- LOW
-        if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_LOW) {     // Column 2
-            LCD_Clear();
-            if (speed > -1) {
-                speed--;
-            }
-            if (speed >= 0) {
+            GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
+            if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
+//                LCD_Clear();
+//                LCD_Display_digit(pos1, 1);
+                LCD_Clear();
+                if (speed < 9) {
+                    speed++;
+                }
                 LCD_Display_digit(pos6, speed);
-            }else if (speed == -1){
-                LCD_Display_letter(pos6, 17); // R
+                LCD_Display_Buttons(1);
+                if (speed == 1) {
+                    toggleLEDs();
+                }
+            } else {
+                GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
+                if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
+                    LCD_Clear();
+                    LCD_Display_letter(pos1, 11); // L
+                    LCD_Display_letter(pos2, 4); // E
+                    LCD_Display_letter(pos3, 5); // F
+                    LCD_Display_letter(pos4, 19); // T
+                    speed = 0;
+                }
             }
-            if (speed == 0) {
-                toggleLEDs();
+
+        } else if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_LOW) {     // Column 2 to GND
+            GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
+            if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
+                LCD_Clear();
+                LCD_Display_letter(pos1, 17); // R
+                LCD_Display_letter(pos2, 8); // I
+                LCD_Display_letter(pos3, 6); // G
+                LCD_Display_letter(pos4, 7); // H
+                LCD_Display_letter(pos5, 19); // T
+                speed = 0;
+            } else {
+                GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
+                if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
+//                    LCD_Clear();
+//                    LCD_Display_digit(pos1, 5);
+                    LCD_Clear();
+                    if (speed > -1) {
+                        speed--;
+                    }
+                    if (speed >= 0) {
+                        LCD_Display_digit(pos6, speed);
+                    } else if (speed == -1){
+                        LCD_Display_letter(pos6, 17); // R
+                    }
+                    if (speed == 0) {
+                        toggleLEDs();
+                    }
+                    LCD_Display_Buttons(1);
+                }
             }
-            LCD_Display_Buttons(1);
+
         }
-
-        GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
-
-        GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- LOW
-
-
+        setRowsLow();
 }
 
 #pragma vector = PORT1_VECTOR       // Using PORT1_VECTOR interrupt because P1.4 and P1.5 are in port 1
