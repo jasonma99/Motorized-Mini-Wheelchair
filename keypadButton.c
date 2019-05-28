@@ -41,8 +41,8 @@ void main (void)
     P1DIR |= 0x01;                          // Set P1.0 to output direction
     P4DIR |= 0x01;                          // Set P2.0 to output direction
 
-    P1OUT = 0x01; // turn on red LED P1.0
-    P4OUT = 0x00; // turn off green LED P4.0
+    P1OUT |= 0x01; // turn on red LED P1.0
+    P4OUT &= 0x00; // turn off green LED P4.0
 
     // ROWS ARE OUTPUTS
     GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN4);                  // Row 1: Output direction
@@ -84,8 +84,8 @@ void setRowsHigh(){
 }
 
 void setRowsLow(){
-    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
-    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
+    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- LOW
+    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- LOW
 }
 
 void Key()
@@ -114,6 +114,8 @@ void Key()
                     LCD_Display_letter(pos3, 5); // F
                     LCD_Display_letter(pos4, 19); // T
                     speed = 0;
+                    P1OUT |= 0x01; // turn on red LED P1.0
+                    P4OUT &= 0x00; // turn off green LED P4.0
                 }
             }
 
@@ -127,7 +129,9 @@ void Key()
                 LCD_Display_letter(pos4, 7); // H
                 LCD_Display_letter(pos5, 19); // T
                 speed = 0;
-            } else {
+                P1OUT |= 0x01; // turn on red LED P1.0
+                P4OUT &= 0x00; // turn off green LED P4.0
+        } else {
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
 //                    LCD_Clear();
@@ -147,7 +151,6 @@ void Key()
                     LCD_Display_Buttons(1);
                 }
             }
-
         }
         setRowsLow();
 }
@@ -160,4 +163,5 @@ __interrupt void PORT1_ISR(void)
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN3);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN4);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN5);
+    GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN6);
 }
