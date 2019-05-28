@@ -46,8 +46,6 @@ void main (void)
     PM5CTL0 &= ~LOCKLPM5;                   // Disable the GPIO power-on default high-impedance mode
                                             // to activate previously configured port settings
 
-    glow();
-
     Init_LCD();                                 //Initialize LCD
 
     speed = 0;
@@ -81,9 +79,8 @@ void main (void)
 
     _EINT();        // Start interrupt
 
-//    while(1) { // poll the ultrasonic sensor
-//
-//    }
+    glow(); // tight-poll the ultrasonic sensor
+
     PMM_unlockLPM5();           // Need this for LED to turn on- in case of "abnormal off state"
     __bis_SR_register(LPM4_bits + GIE);     // Need this for interrupts or else "abnormal termination"
     __no_operation();           //For debugger
