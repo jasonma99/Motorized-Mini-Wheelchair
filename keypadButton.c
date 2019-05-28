@@ -11,7 +11,8 @@
 #include "msp430fr4133.h"
 #include "HAL_FR4133LP_LCD.h"
 #include "HAL_FR4133LP_Learn_Board.h"
-
+//#include "distanceSensor.c"
+//#include "RTC.h" // for real-time clock applications
 
 char hexaKeys[4][3] = {
   {'1','2','3'},
@@ -29,8 +30,23 @@ int speed;
 void main (void)
 {
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
+/*    setTime( 0x12, 0, 0, 0);                // initialize time to 12:00:00 AM
+    P1DIR |= 0x01;                          // Set P1.0 to output direction
+    CCR0 = 32768-1;
+    TACTL = TASSEL_1+MC_1;                  // ACLK, upmode
+    CCTL0 |= CCIE;                          // enable CCRO interrupt
+    _EINT();
+    while( 1 )
+    {
+        LPM3; // enter LPM3, clock will be updated
+        P1OUT ^= 0x01; // do any other needed items in loop
+    }*/
+
+
     PM5CTL0 &= ~LOCKLPM5;                   // Disable the GPIO power-on default high-impedance mode
                                             // to activate previously configured port settings
+
+    glow();
 
     Init_LCD();                                 //Initialize LCD
 
@@ -160,4 +176,12 @@ __interrupt void PORT1_ISR(void)
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN3);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN4);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN5);
+}
+
+// Timer A0 interrupt service routine
+#pragma vector=TIMERA0_VECTOR
+__interrupt void Timer_A (void)
+{
+    incrementSeconds();
+    LPM3_EXIT;
 }
