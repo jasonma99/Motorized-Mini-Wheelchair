@@ -1,10 +1,3 @@
-/* DESCRIPTION
- * Sample code showing keypad's response to pushing buttons 1 and 2
- * Include pressedKey on debugger's "Expressions" to see the hexaKeys' value when you alternate between the two keys
- * Did not include button debouncer in this (releasing the button does not set pressedKey back to Value 0 '\x00')
- */
-
-
 #include <msp430.h>
 #include "driverlib.h"
 #include "Board.h"
@@ -13,13 +6,6 @@
 #include "HAL_FR4133LP_Learn_Board.h"
 //#include "distanceSensor.c"
 //#include "RTC.h" // for real-time clock applications
-
-char hexaKeys[4][3] = {
-  {'1','2','3'},
-  {'4','5','6'},
-  {'7','8','9'},
-  {'*','0','#'}
-};
 
 void setRowsHigh();
 void setRowsLow();
@@ -97,8 +83,8 @@ void setRowsHigh(){
 }
 
 void setRowsLow(){
-    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
-    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
+    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- LOW
+    GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- LOW
 }
 
 void Key()
@@ -173,12 +159,13 @@ __interrupt void PORT1_ISR(void)
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN3);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN4);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN5);
+    GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN6);
 }
 
-// Timer A0 interrupt service routine
-#pragma vector=TIMERA0_VECTOR
-__interrupt void Timer_A (void)
-{
-    incrementSeconds();
-    LPM3_EXIT;
-}
+//// Timer A0 interrupt service routine
+//#pragma vector=TIMERA0_VECTOR
+//__interrupt void Timer_A (void)
+//{
+//    incrementSeconds();
+//    LPM3_EXIT;
+//}
