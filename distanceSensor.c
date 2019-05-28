@@ -37,7 +37,7 @@ void glow (void)
     GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN0);
     GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN0);
 
-    while(1) {
+    while(1) { // tight polling loop, should be replaced by periodic polling interrupt in keypadButton.c
         poll();
     }
 
