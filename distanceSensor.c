@@ -3,7 +3,7 @@
  *
  *  Created on: May 28, 2019
  *      Author: Michael Leung, mh2leung
-*    Resources: HC-SR04 Demo for Arduino
+*    Resources: Code ported from HC-SR04 Demo for Arduino found here https://www.instructables.com/id/Simple-Arduino-and-HC-SR04-Example/
  */
 
 #include <msp430.h>
