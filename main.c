@@ -4,8 +4,6 @@
 #include "msp430fr4133.h"
 #include "HAL_FR4133LP_LCD.h"
 #include "HAL_FR4133LP_Learn_Board.h"
-//#include "distanceSensor.c"
-//#include "RTC.h" // for real-time clock applications
 
 void setRowsHigh();
 void setRowsLow();
@@ -16,19 +14,6 @@ int speed;
 void main (void)
 {
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
-/*    setTime( 0x12, 0, 0, 0);                // initialize time to 12:00:00 AM
-    P1DIR |= 0x01;                          // Set P1.0 to output direction
-    CCR0 = 32768-1;
-    TACTL = TASSEL_1+MC_1;                  // ACLK, upmode
-    CCTL0 |= CCIE;                          // enable CCRO interrupt
-    _EINT();
-    while( 1 )
-    {
-        LPM3; // enter LPM3, clock will be updated
-        P1OUT ^= 0x01; // do any other needed items in loop
-    }*/
-
-
     PM5CTL0 &= ~LOCKLPM5;                   // Disable the GPIO power-on default high-impedance mode
                                             // to activate previously configured port settings
 
@@ -50,7 +35,6 @@ void main (void)
     setRowsLow();
 
     // COLUMNS ARE ISR TRIGGERS
-
     GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN5, GPIO_PRIMARY_MODULE_FUNCTION);     // Column 1: Input direction
     GPIO_selectInterruptEdge(GPIO_PORT_P1, GPIO_PIN5, GPIO_HIGH_TO_LOW_TRANSITION);
     GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P1, GPIO_PIN5);
@@ -63,11 +47,7 @@ void main (void)
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN7);
     GPIO_enableInterrupt(GPIO_PORT_P2, GPIO_PIN7);
 
-
     _EINT();        // Start interrupt
-
-//    GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN3);
-//    GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN3);
 
     glow(); // tight-poll the ultrasonic sensor
 
@@ -76,7 +56,7 @@ void main (void)
     __no_operation();           //For debugger
 }
 
-void toggleLEDs(){
+void toggle_direction_LEDs(){
     P1OUT ^= 0x01; // toggle red LED P1.0
     P4OUT ^= 0x01; // toggle green LED P4.0
 }
@@ -103,7 +83,7 @@ void Key()
                 LCD_Display_digit(pos6, speed);
                 LCD_Display_Buttons(1);
                 if (speed == 1) {
-                    toggleLEDs();
+                    toggle_direction_LEDs();
                 }
             } else {
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
@@ -144,7 +124,7 @@ void Key()
                             LCD_Display_letter(pos6, 17); // R
                         }
                         if (speed == 0) {
-                            toggleLEDs();
+                            toggle_direction_LEDs();
                         }
                         LCD_Display_Buttons(1);                    }
             }
@@ -168,11 +148,3 @@ __interrupt void PORT2_ISR(void)
 
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN7);
 }
-
-//// Timer A0 interrupt service routine
-//#pragma vector=TIMERA0_VECTOR
-//__interrupt void Timer_A (void)
-//{
-//    incrementSeconds();
-//    LPM3_EXIT;
-//}

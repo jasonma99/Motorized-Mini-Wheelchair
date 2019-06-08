@@ -10,36 +10,36 @@ C_SRCS += \
 ../HAL_FR4133LP_LCD.c \
 ../HAL_FR4133LP_Learn_Board.c \
 ../distanceSensor.c \
-../keypadButton.c 
+../main.c 
 
 C_DEPS += \
 ./HAL_FR4133LP_LCD.d \
 ./HAL_FR4133LP_Learn_Board.d \
 ./distanceSensor.d \
-./keypadButton.d 
+./main.d 
 
 OBJS += \
 ./HAL_FR4133LP_LCD.obj \
 ./HAL_FR4133LP_Learn_Board.obj \
 ./distanceSensor.obj \
-./keypadButton.obj 
+./main.obj 
 
 OBJS__QUOTED += \
 "HAL_FR4133LP_LCD.obj" \
 "HAL_FR4133LP_Learn_Board.obj" \
 "distanceSensor.obj" \
-"keypadButton.obj" 
+"main.obj" 
 
 C_DEPS__QUOTED += \
 "HAL_FR4133LP_LCD.d" \
 "HAL_FR4133LP_Learn_Board.d" \
 "distanceSensor.d" \
-"keypadButton.d" 
+"main.d" 
 
 C_SRCS__QUOTED += \
 "../HAL_FR4133LP_LCD.c" \
 "../HAL_FR4133LP_Learn_Board.c" \
 "../distanceSensor.c" \
-"../keypadButton.c" 
+"../main.c" 
 
 
