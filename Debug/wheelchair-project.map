@@ -1,10 +1,10 @@
 ******************************************************************************
                   MSP430 Linker PC v18.12.1                    
 ******************************************************************************
->> Linked Sat Jun  8 13:01:57 2019
+>> Linked Sat Jun  8 13:13:51 2019
 
 OUTPUT FILE NAME:   <wheelchair-project.out>
-ENTRY POINT SYMBOL: "_c_int00_noargs"  address: 0000cc7a
+ENTRY POINT SYMBOL: "_c_int00_noargs"  address: 0000cdaa
 
 
 MEMORY CONFIGURATION
@@ -16,7 +16,7 @@ MEMORY CONFIGURATION
   PERIPHERALS_16BIT     00000100   00000100  00000000  00000100  RWIX
   INFOA                 00001800   00000200  00000000  00000200  RWIX
   RAM                   00002000   00000800  000000a4  0000075c  RWIX
-  FRAM                  0000c400   00003b80  000009c2  000031be  RWIX
+  FRAM                  0000c400   00003b80  00000b2e  00003052  RWIX
   JTAGSIGNATURE         0000ff80   00000004  00000004  00000000  RWIX  ffff 
   BSLSIGNATURE          0000ff84   00000004  00000004  00000000  RWIX  ffff 
   INT00                 0000ff88   00000002  00000000  00000002  RWIX
@@ -108,44 +108,55 @@ section   page    origin      length       input sections
 .mspabi.extab 
 *          0    0000c428    00000000     UNINITIALIZED
 
-.const     0    0000c428    0000005e     
+.const     0    0000c428    00000070     
                   0000c428    00000038     HAL_FR4133LP_LCD.obj (.const:alphabet)
                   0000c460    0000001c     gpio.obj (.const:GPIO_PORT_TO_BASE)
-                  0000c47c    0000000a     HAL_FR4133LP_LCD.obj (.const:.string:digit)
+                  0000c47c    0000000a     main.obj (.const:$P$T0$1)
+                  0000c486    0000000a     HAL_FR4133LP_LCD.obj (.const:.string:digit)
+                  0000c490    00000008     main.obj (.const:$P$T1$2)
 
-.text      0    0000c486    0000093c     
-                  0000c486    00000230     HAL_FR4133LP_LCD.obj (.text:LCD_Display_Buttons)
-                  0000c6b6    0000017e     main.obj (.text:Key)
-                  0000c834    000000fc     main.obj (.text:main)
-                  0000c930    000000ee     rts430x_lc_sd_eabi.lib : copy_decompress_lzss.c.obj (.text:decompress:lzss:__TI_decompress_lzss)
-                  0000ca1e    0000006a                            : autoinit.c.obj (.text:__TI_auto_init_nobinit_nopinit_hold_wdt:__TI_auto_init_nobinit_nopinit_hold_wdt)
-                  0000ca88    0000005c     main.obj (.text:poll)
-                  0000cae4    00000048     HAL_FR4133LP_LCD.obj (.text:Init_LCD)
-                  0000cb2c    00000040     rts430x_lc_sd_eabi.lib : cpy_util.asm.obj (.text:__memcpy_far)
-                  0000cb6c    0000003e                            : copy_zero_init.c.obj (.text:decompress:ZI:__TI_zero_init_nomemset:__TI_zero_init_nomemset)
-                  0000cbaa    0000003c                            : copy_decompress_none.c.obj (.text:decompress:none:__TI_decompress_none)
-                  0000cbe6    00000034     gpio.obj (.text:GPIO_setAsPeripheralModuleFunctionInputPin)
-                  0000cc1a    00000022     gpio.obj (.text:GPIO_setAsInputPinWithPullUpResistor)
-                  0000cc3c    00000020     gpio.obj (.text:GPIO_selectInterruptEdge)
-                  0000cc5c    0000001e     main.obj (.text:_isr:PORT1_ISR)
-                  0000cc7a    0000001c     rts430x_lc_sd_eabi.lib : boot.c.obj (.text:_isr:_c_int00_noargs)
-                  0000cc96    0000001a     gpio.obj (.text:GPIO_getInputPinValue)
-                  0000ccb0    0000001a     gpio.obj (.text:GPIO_setAsOutputPin)
-                  0000ccca    0000001a     HAL_FR4133LP_LCD.obj (.text:LCD_Display_letter)
-                  0000cce4    0000001a     HAL_FR4133LP_Learn_Board.obj (.text:_isr:WDT_ISR)
-                  0000ccfe    00000018     HAL_FR4133LP_LCD.obj (.text:LCD_Clear)
-                  0000cd16    00000016     gpio.obj (.text:GPIO_clearInterrupt)
-                  0000cd2c    00000016     gpio.obj (.text:GPIO_enableInterrupt)
-                  0000cd42    00000016     gpio.obj (.text:GPIO_setOutputHighOnPin)
-                  0000cd58    00000016     gpio.obj (.text:GPIO_setOutputLowOnPin)
-                  0000cd6e    00000016     main.obj (.text:setRowsLow)
-                  0000cd84    00000014     main.obj (.text:_isr:PORT2_ISR)
-                  0000cd98    0000000c     HAL_FR4133LP_LCD.obj (.text:LCD_Display_digit)
-                  0000cda4    0000000a     main.obj (.text:toggle_direction_LEDs)
-                  0000cdae    00000008     rts430x_lc_sd_eabi.lib : isr_trap.asm.obj (.text:_isr:__TI_ISR_TRAP)
-                  0000cdb6    00000006                            : exit.c.obj (.text:abort)
-                  0000cdbc    00000004                            : pre_init.c.obj (.text:_system_pre_init)
-                  0000cdc0    00000002                            : startup.c.obj (.text:_system_post_cinit)
+.text      0    0000c498    00000a96     
+                  0000c498    00000230     HAL_FR4133LP_LCD.obj (.text:LCD_Display_Buttons)
+                  0000c6c8    00000188     main.obj (.text:main)
+                  0000c850    0000017e     main.obj (.text:Key)
+                  0000c9ce    000000ee     rts430x_lc_sd_eabi.lib : copy_decompress_lzss.c.obj (.text:decompress:lzss:__TI_decompress_lzss)
+                  0000cabc    0000006a                            : autoinit.c.obj (.text:__TI_auto_init_nobinit_nopinit_hold_wdt:__TI_auto_init_nobinit_nopinit_hold_wdt)
+                  0000cb26    0000005c     main.obj (.text:poll)
+                  0000cb82    00000048     HAL_FR4133LP_LCD.obj (.text:Init_LCD)
+                  0000cbca    00000040     timer_a.obj (.text:Timer_A_initContinuousMode)
+                  0000cc0a    00000040     rts430x_lc_sd_eabi.lib : cpy_util.asm.obj (.text:__memcpy_far)
+                  0000cc4a    0000003e                            : copy_zero_init.c.obj (.text:decompress:ZI:__TI_zero_init_nomemset:__TI_zero_init_nomemset)
+                  0000cc88    0000003c                            : copy_decompress_none.c.obj (.text:decompress:none:__TI_decompress_none)
+                  0000ccc4    00000034     gpio.obj (.text:GPIO_setAsPeripheralModuleFunctionInputPin)
+                  0000ccf8    0000002e     timer_a.obj (.text:Timer_A_initCompareMode)
+                  0000cd26    00000024     main.obj (.text:_isr:TIMER1_A0_ISR)
+                  0000cd4a    00000022     gpio.obj (.text:GPIO_setAsInputPinWithPullUpResistor)
+                  0000cd6c    00000020     gpio.obj (.text:GPIO_selectInterruptEdge)
+                  0000cd8c    0000001e     main.obj (.text:_isr:PORT1_ISR)
+                  0000cdaa    0000001c     rts430x_lc_sd_eabi.lib : boot.c.obj (.text:_isr:_c_int00_noargs)
+                  0000cdc6    0000001a     gpio.obj (.text:GPIO_getInputPinValue)
+                  0000cde0    0000001a     gpio.obj (.text:GPIO_setAsOutputPin)
+                  0000cdfa    0000001a     HAL_FR4133LP_LCD.obj (.text:LCD_Display_letter)
+                  0000ce14    0000001a     HAL_FR4133LP_Learn_Board.obj (.text:_isr:WDT_ISR)
+                  0000ce2e    00000018     HAL_FR4133LP_LCD.obj (.text:LCD_Clear)
+                  0000ce46    00000016     gpio.obj (.text:GPIO_clearInterrupt)
+                  0000ce5c    00000016     gpio.obj (.text:GPIO_enableInterrupt)
+                  0000ce72    00000016     gpio.obj (.text:GPIO_setOutputHighOnPin)
+                  0000ce88    00000016     gpio.obj (.text:GPIO_setOutputLowOnPin)
+                  0000ce9e    00000016     main.obj (.text:setRowsLow)
+                  0000ceb4    00000014     main.obj (.text:_isr:PORT2_ISR)
+                  0000cec8    00000012     rts430x_lc_sd_eabi.lib : memcpy.c.obj (.text:memcpy)
+                  0000ceda    0000000c     HAL_FR4133LP_LCD.obj (.text:LCD_Display_digit)
+                  0000cee6    0000000c     timer_a.obj (.text:Timer_A_startCounter)
+                  0000cef2    0000000a     main.obj (.text:toggle_direction_LEDs)
+                  0000cefc    00000008     timer_a.obj (.text:Timer_A_clearCaptureCompareInterrupt)
+                  0000cf04    00000008     timer_a.obj (.text:Timer_A_getCaptureCompareCount)
+                  0000cf0c    00000008     timer_a.obj (.text:Timer_A_setCompareValue)
+                  0000cf14    00000008     rts430x_lc_sd_eabi.lib : isr_trap.asm.obj (.text:_isr:__TI_ISR_TRAP)
+                  0000cf1c    00000006     pmm.obj (.text:PMM_unlockLPM5)
+                  0000cf22    00000006     rts430x_lc_sd_eabi.lib : exit.c.obj (.text:abort)
+                  0000cf28    00000004                            : pre_init.c.obj (.text:_system_pre_init)
+                  0000cf2c    00000002                            : startup.c.obj (.text:_system_post_cinit)
 
 .bss       0    00002000    00000002     UNINITIALIZED
                   00002000    00000002     (.common:speed)
@@ -187,7 +198,7 @@ TIMER1_A1
 
 TIMER1_A0 
 *          0    0000fff4    00000002     
-                  0000fff4    00000002     rts430x_lc_sd_eabi.lib : int54.asm.obj (.int54)
+                  0000fff4    00000002     main.obj (.int54)
 
 TIMER0_A1 
 *          0    0000fff6    00000002     
@@ -217,16 +228,18 @@ MODULE SUMMARY
        Module                         code   ro data   rw data
        ------                         ----   -------   -------
     .\
-       main.obj                       808    4         2      
+       main.obj                       984    24        2      
        HAL_FR4133LP_LCD.obj           694    66        0      
        HAL_FR4133LP_Learn_Board.obj   26     2         2      
     +--+------------------------------+------+---------+---------+
-       Total:                         1528   72        4      
+       Total:                         1704   92        4      
                                                               
     .\driverlib\MSP430FR2xx_4xx\
        gpio.obj                       258    28        0      
+       timer_a.obj                    146    0         0      
+       pmm.obj                        6      0         0      
     +--+------------------------------+------+---------+---------+
-       Total:                         258    28        0      
+       Total:                         410    28        0      
                                                               
     C:\ti\ccs901\ccs\tools\compiler\ti-cgt-msp430_18.12.1.LTS\lib\rts430x_lc_sd_eabi.lib
        copy_decompress_lzss.c.obj     238    0         0      
@@ -235,6 +248,7 @@ MODULE SUMMARY
        copy_zero_init.c.obj           62     0         0      
        copy_decompress_none.c.obj     60     0         0      
        boot.c.obj                     28     2         0      
+       memcpy.c.obj                   18     0         0      
        isr_trap.asm.obj               8      0         0      
        exit.c.obj                     6      0         0      
        pre_init.c.obj                 4      0         0      
@@ -244,19 +258,18 @@ MODULE SUMMARY
        int50.asm.obj                  0      2         0      
        int52.asm.obj                  0      2         0      
        int53.asm.obj                  0      2         0      
-       int54.asm.obj                  0      2         0      
        int55.asm.obj                  0      2         0      
        int56.asm.obj                  0      2         0      
        int57.asm.obj                  0      2         0      
        int58.asm.obj                  0      2         0      
        startup.c.obj                  2      0         0      
     +--+------------------------------+------+---------+---------+
-       Total:                         578    24        0      
+       Total:                         596    22        0      
                                                               
        Stack:                         0      0         160    
        Linker Generated:              0      40        0      
     +--+------------------------------+------+---------+---------+
-       Grand Total:                   2364   164       164    
+       Grand Total:                   2710   182       164    
 
 
 LINKER GENERATED COPY TABLES
@@ -356,7 +369,7 @@ address   name
 00000672  BAKMEM9                                   
 00000673  BAKMEM9_H                                 
 00000672  BAKMEM9_L                                 
-0000cdb6  C$$EXIT                                   
+0000cf22  C$$EXIT                                   
 000002ee  CAPTIO0CTL                                
 000002ef  CAPTIO0CTL_H                              
 000002ee  CAPTIO0CTL_L                              
@@ -408,17 +421,17 @@ address   name
 000001a6  GCCTL1                                    
 000001a7  GCCTL1_H                                  
 000001a6  GCCTL1_L                                  
-0000cd16  GPIO_clearInterrupt                       
-0000cd2c  GPIO_enableInterrupt                      
-0000cc96  GPIO_getInputPinValue                     
-0000cc3c  GPIO_selectInterruptEdge                  
-0000cc1a  GPIO_setAsInputPinWithPullUpResistor      
-0000ccb0  GPIO_setAsOutputPin                       
-0000cbe6  GPIO_setAsPeripheralModuleFunctionInputPin
-0000cd42  GPIO_setOutputHighOnPin                   
-0000cd58  GPIO_setOutputLowOnPin                    
-0000cae4  Init_LCD                                  
-0000c6b6  Key                                       
+0000ce46  GPIO_clearInterrupt                       
+0000ce5c  GPIO_enableInterrupt                      
+0000cdc6  GPIO_getInputPinValue                     
+0000cd6c  GPIO_selectInterruptEdge                  
+0000cd4a  GPIO_setAsInputPinWithPullUpResistor      
+0000cde0  GPIO_setAsOutputPin                       
+0000ccc4  GPIO_setAsPeripheralModuleFunctionInputPin
+0000ce72  GPIO_setOutputHighOnPin                   
+0000ce88  GPIO_setOutputLowOnPin                    
+0000cb82  Init_LCD                                  
+0000c850  Key                                       
 00000604  LCDBLKCTL                                 
 00000605  LCDBLKCTL_H                               
 00000604  LCDBLKCTL_L                               
@@ -543,10 +556,10 @@ address   name
 00000608  LCDVCTL                                   
 00000609  LCDVCTL_H                                 
 00000608  LCDVCTL_L                                 
-0000ccfe  LCD_Clear                                 
-0000c486  LCD_Display_Buttons                       
-0000cd98  LCD_Display_digit                         
-0000ccca  LCD_Display_letter                        
+0000ce2e  LCD_Clear                                 
+0000c498  LCD_Display_Buttons                       
+0000ceda  LCD_Display_digit                         
+0000cdfa  LCD_Display_letter                        
 0000020e  P1IV                                      
 0000021e  P2IV                                      
 00000204  PADIR                                     
@@ -636,8 +649,9 @@ address   name
 0000012a  PMMIFG                                    
 0000012b  PMMIFG_H                                  
 0000012a  PMMIFG_L                                  
-0000cc5c  PORT1_ISR                                 
-0000cd84  PORT2_ISR                                 
+0000cf1c  PMM_unlockLPM5                            
+0000cd8c  PORT1_ISR                                 
+0000ceb4  PORT2_ISR                                 
 000003cc  RTCCNT                                    
 000003cd  RTCCNT_H                                  
 000003cc  RTCCNT_L                                  
@@ -721,6 +735,13 @@ address   name
 00000360  TA1EX0                                    
 0000036e  TA1IV                                     
 00000350  TA1R                                      
+0000cd26  TIMER1_A0_ISR                             
+0000cefc  Timer_A_clearCaptureCompareInterrupt      
+0000cf04  Timer_A_getCaptureCompareCount            
+0000ccf8  Timer_A_initCompareMode                   
+0000cbca  Timer_A_initContinuousMode                
+0000cf0c  Timer_A_setCompareValue                   
+0000cee6  Timer_A_startCounter                      
 00000510  UCA0ABCTL                                 
 00000506  UCA0BRW                                   
 00000507  UCA0BRW_H                                 
@@ -803,17 +824,17 @@ address   name
 000001cc  WDTCTL                                    
 000001cd  WDTCTL_H                                  
 000001cc  WDTCTL_L                                  
-0000cce4  WDT_ISR                                   
+0000ce14  WDT_ISR                                   
 00002800  __STACK_END                               
 000000a0  __STACK_SIZE                              
 0000c418  __TI_CINIT_Base                           
 0000c428  __TI_CINIT_Limit                          
 0000c400  __TI_Handler_Table_Base                   
 0000c40c  __TI_Handler_Table_Limit                  
-0000cdae  __TI_ISR_TRAP                             
-0000ca1e  __TI_auto_init_nobinit_nopinit_hold_wdt   
-0000c930  __TI_decompress_lzss                      
-0000cbaa  __TI_decompress_none                      
+0000cf14  __TI_ISR_TRAP                             
+0000cabc  __TI_auto_init_nobinit_nopinit_hold_wdt   
+0000c9ce  __TI_decompress_lzss                      
+0000cc88  __TI_decompress_none                      
 0000ffe2  __TI_int45                                
 0000ffe4  __TI_int46                                
 0000ffe6  __TI_int47                                
@@ -831,24 +852,25 @@ address   name
 ffffffff  __TI_pprof_out_hndl                       
 ffffffff  __TI_prof_data_size                       
 ffffffff  __TI_prof_data_start                      
-0000cb6c  __TI_zero_init_nomemset                   
+0000cc4a  __TI_zero_init_nomemset                   
 ffffffff  __c_args__                                
-0000cb2c  __memcpy_far                              
-0000cc7a  _c_int00_noargs                           
+0000cc0a  __memcpy_far                              
+0000cdaa  _c_int00_noargs                           
 0000fffe  _reset_vector                             
 00002760  _stack                                    
-0000cdc0  _system_post_cinit                        
-0000cdbc  _system_pre_init                          
-0000cdb6  abort                                     
+0000cf2c  _system_post_cinit                        
+0000cf28  _system_pre_init                          
+0000cf22  abort                                     
 0000c428  alphabet                                  
 00002003  buttonDebounce                            
-0000c47c  digit                                     
+0000c486  digit                                     
 00002002  key_num                                   
-0000c834  main                                      
-0000ca88  poll                                      
-0000cd6e  setRowsLow                                
+0000c6c8  main                                      
+0000cec8  memcpy                                    
+0000cb26  poll                                      
+0000ce9e  setRowsLow                                
 00002000  speed                                     
-0000cda4  toggle_direction_LEDs                     
+0000cef2  toggle_direction_LEDs                     
 
 
 GLOBAL SYMBOLS: SORTED BY Symbol Address 
@@ -1373,40 +1395,49 @@ address   name
 0000c418  __TI_CINIT_Base                           
 0000c428  __TI_CINIT_Limit                          
 0000c428  alphabet                                  
-0000c47c  digit                                     
-0000c486  LCD_Display_Buttons                       
-0000c6b6  Key                                       
-0000c834  main                                      
-0000c930  __TI_decompress_lzss                      
-0000ca1e  __TI_auto_init_nobinit_nopinit_hold_wdt   
-0000ca88  poll                                      
-0000cae4  Init_LCD                                  
-0000cb2c  __memcpy_far                              
-0000cb6c  __TI_zero_init_nomemset                   
-0000cbaa  __TI_decompress_none                      
-0000cbe6  GPIO_setAsPeripheralModuleFunctionInputPin
-0000cc1a  GPIO_setAsInputPinWithPullUpResistor      
-0000cc3c  GPIO_selectInterruptEdge                  
-0000cc5c  PORT1_ISR                                 
-0000cc7a  _c_int00_noargs                           
-0000cc96  GPIO_getInputPinValue                     
-0000ccb0  GPIO_setAsOutputPin                       
-0000ccca  LCD_Display_letter                        
-0000cce4  WDT_ISR                                   
-0000ccfe  LCD_Clear                                 
-0000cd16  GPIO_clearInterrupt                       
-0000cd2c  GPIO_enableInterrupt                      
-0000cd42  GPIO_setOutputHighOnPin                   
-0000cd58  GPIO_setOutputLowOnPin                    
-0000cd6e  setRowsLow                                
-0000cd84  PORT2_ISR                                 
-0000cd98  LCD_Display_digit                         
-0000cda4  toggle_direction_LEDs                     
-0000cdae  __TI_ISR_TRAP                             
-0000cdb6  C$$EXIT                                   
-0000cdb6  abort                                     
-0000cdbc  _system_pre_init                          
-0000cdc0  _system_post_cinit                        
+0000c486  digit                                     
+0000c498  LCD_Display_Buttons                       
+0000c6c8  main                                      
+0000c850  Key                                       
+0000c9ce  __TI_decompress_lzss                      
+0000cabc  __TI_auto_init_nobinit_nopinit_hold_wdt   
+0000cb26  poll                                      
+0000cb82  Init_LCD                                  
+0000cbca  Timer_A_initContinuousMode                
+0000cc0a  __memcpy_far                              
+0000cc4a  __TI_zero_init_nomemset                   
+0000cc88  __TI_decompress_none                      
+0000ccc4  GPIO_setAsPeripheralModuleFunctionInputPin
+0000ccf8  Timer_A_initCompareMode                   
+0000cd26  TIMER1_A0_ISR                             
+0000cd4a  GPIO_setAsInputPinWithPullUpResistor      
+0000cd6c  GPIO_selectInterruptEdge                  
+0000cd8c  PORT1_ISR                                 
+0000cdaa  _c_int00_noargs                           
+0000cdc6  GPIO_getInputPinValue                     
+0000cde0  GPIO_setAsOutputPin                       
+0000cdfa  LCD_Display_letter                        
+0000ce14  WDT_ISR                                   
+0000ce2e  LCD_Clear                                 
+0000ce46  GPIO_clearInterrupt                       
+0000ce5c  GPIO_enableInterrupt                      
+0000ce72  GPIO_setOutputHighOnPin                   
+0000ce88  GPIO_setOutputLowOnPin                    
+0000ce9e  setRowsLow                                
+0000ceb4  PORT2_ISR                                 
+0000cec8  memcpy                                    
+0000ceda  LCD_Display_digit                         
+0000cee6  Timer_A_startCounter                      
+0000cef2  toggle_direction_LEDs                     
+0000cefc  Timer_A_clearCaptureCompareInterrupt      
+0000cf04  Timer_A_getCaptureCompareCount            
+0000cf0c  Timer_A_setCompareValue                   
+0000cf14  __TI_ISR_TRAP                             
+0000cf1c  PMM_unlockLPM5                            
+0000cf22  C$$EXIT                                   
+0000cf22  abort                                     
+0000cf28  _system_pre_init                          
+0000cf2c  _system_post_cinit                        
 0000ffe2  __TI_int45                                
 0000ffe4  __TI_int46                                
 0000ffe6  __TI_int47                                
@@ -1427,4 +1458,4 @@ ffffffff  __TI_prof_data_size
 ffffffff  __TI_prof_data_start                      
 ffffffff  __c_args__                                
 
-[571 symbols]
+[580 symbols]

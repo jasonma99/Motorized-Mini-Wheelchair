@@ -8,6 +8,8 @@
 
 #define MAX_DIST 23200
 #define SPEED_OF_SOUND 340
+#define COMPARE_VALUE 65535
+
 
 void setRowsHigh();
 void setRowsLow();
@@ -55,7 +57,8 @@ void main (void)
 
     _EINT();        // Start interrupt
 
-    //    glow(); // tight-poll the ultrasonic sensor
+    //=================================================================================================
+    // glow(); // tight-poll the ultrasonic sensor
     // instead of call function glow(), just put the set up code below:
     // P2.5 trigger
     // P1.3 echo
@@ -65,8 +68,35 @@ void main (void)
     GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
     GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN0);
     GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN0);
-    while(1)  // tight polling loop, should be replaced by periodic polling interrupt in keypadButton.c
-        poll();
+    //    while(1)  // tight polling loop, should be replaced by periodic polling interrupt in keypadButton.c
+    //        poll();
+
+    //Start timer in continuous mode sourced by SMCLK
+        Timer_A_initContinuousModeParam initContParam = {0};
+        initContParam.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
+        initContParam.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
+        initContParam.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
+        initContParam.timerClear = TIMER_A_DO_CLEAR;
+        initContParam.startTimer = false;
+        Timer_A_initContinuousMode(TIMER_A1_BASE, &initContParam);
+
+        //Initiaze compare mode
+        Timer_A_clearCaptureCompareInterrupt(TIMER_A1_BASE,
+            TIMER_A_CAPTURECOMPARE_REGISTER_0
+            );
+
+        Timer_A_initCompareModeParam initCompParam = {0};
+        initCompParam.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_0;
+        initCompParam.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE;
+        initCompParam.compareOutputMode = TIMER_A_OUTPUTMODE_OUTBITVALUE;
+        initCompParam.compareValue = COMPARE_VALUE;
+        Timer_A_initCompareMode(TIMER_A1_BASE, &initCompParam);
+
+
+        Timer_A_startCounter( TIMER_A1_BASE,
+                TIMER_A_CONTINUOUS_MODE
+        );
+    // ==========================================================================================
 
     PMM_unlockLPM5();           // Need this for LED to turn on- in case of "abnormal off state"
     __bis_SR_register(LPM4_bits + GIE);     // Need this for interrupts or else "abnormal termination"
@@ -191,3 +221,33 @@ __interrupt void PORT2_ISR(void)
 
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN7);
 }
+
+//*****************************************************************************
+//This is the TIMER1_A0 interrupt vector service routine.
+//******************************************************************************
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector=TIMER1_A0_VECTOR
+__interrupt
+#elif defined(__GNUC__)
+__attribute__((interrupt(TIMER1_A0_VECTOR)))
+#endif
+void TIMER1_A0_ISR (void)
+{
+    uint16_t compVal = Timer_A_getCaptureCompareCount(TIMER_A1_BASE,
+            TIMER_A_CAPTURECOMPARE_REGISTER_0)
+            + COMPARE_VALUE;
+
+    //Toggle LED1
+//    GPIO_toggleOutputOnPin(
+//        GPIO_PORT_LED1,
+//        GPIO_PIN_LED1
+//        );
+    poll();
+
+    //Add Offset to CCR0
+    Timer_A_setCompareValue(TIMER_A1_BASE,
+        TIMER_A_CAPTURECOMPARE_REGISTER_0,
+        compVal
+        );
+}
+
