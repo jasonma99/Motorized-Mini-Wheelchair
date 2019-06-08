@@ -26,14 +26,14 @@ int ledOn;
 
 void glow (void)
 {
-    // 2.5 trigger
-    // 2.7 echo
-    // 5.0 LED/motor
+    // P2.5 trigger
+    // P1.3 echo
+    // P5.0 LED/motor
     ledOn = 0x0;
     GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN5);
     GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
 
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P2, GPIO_PIN7, GPIO_PRIMARY_MODULE_FUNCTION);     // Column 1: Input direction
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
 
     GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN0);
     GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN0);
@@ -64,11 +64,11 @@ void poll() {
 //    __delay_cycles(160); // 10ms = 1/(16MHz processor)*150 cycles
     GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
 
-    while (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_LOW);
+    while (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_LOW);
 
     //    sendTime = TI_second;
         sendTime = 0;
-    while (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH){
+    while (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_HIGH){
 //        incrementSeconds();
         sendTime++;
     };

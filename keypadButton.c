@@ -57,13 +57,17 @@ void main (void)
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN5);
     GPIO_enableInterrupt(GPIO_PORT_P1, GPIO_PIN5);
 
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);     // Column 2: Input direction
-    GPIO_selectInterruptEdge(GPIO_PORT_P1, GPIO_PIN3, GPIO_HIGH_TO_LOW_TRANSITION);
-    GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P1, GPIO_PIN3);
-    GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN3);
-    GPIO_enableInterrupt(GPIO_PORT_P1, GPIO_PIN3);
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P2, GPIO_PIN7, GPIO_PRIMARY_MODULE_FUNCTION);     // Column 2: Input direction
+    GPIO_selectInterruptEdge(GPIO_PORT_P2, GPIO_PIN7, GPIO_HIGH_TO_LOW_TRANSITION);
+    GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P2, GPIO_PIN7);
+    GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN7);
+    GPIO_enableInterrupt(GPIO_PORT_P2, GPIO_PIN7);
+
 
     _EINT();        // Start interrupt
+
+//    GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN3);
+//    GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN3);
 
     glow(); // tight-poll the ultrasonic sensor
 
@@ -89,12 +93,9 @@ void setRowsLow(){
 
 void Key()
 {
-        setRowsLow();
         if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_LOW){     // Column 1 to GND
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
             if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
-//                LCD_Clear();
-//                LCD_Display_digit(pos1, 1);
                 LCD_Clear();
                 if (speed < 9) {
                     speed++;
@@ -117,10 +118,10 @@ void Key()
                     P4OUT &= 0x00; // turn off green LED P4.0
                 }
             }
-
-        } else if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_LOW) {     // Column 2 to GND
+        } else
+            if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_LOW) {     // Column 2 to GND
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
-            if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
+            if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
                 LCD_Clear();
                 LCD_Display_letter(pos1, 17); // R
                 LCD_Display_letter(pos2, 8); // I
@@ -130,39 +131,42 @@ void Key()
                 speed = 0;
                 P1OUT |= 0x01; // turn on red LED P1.0
                 P4OUT &= 0x00; // turn off green LED P4.0
-        } else {
-                GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
-                if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
-//                    LCD_Clear();
-//                    LCD_Display_digit(pos1, 5);
-                    LCD_Clear();
-                    if (speed > -1) {
-                        speed--;
+            } else {
+                    GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
+                    if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
+                        LCD_Clear();
+                        if (speed > -1) {
+                            speed--;
+                        }
+                        if (speed >= 0) {
+                            LCD_Display_digit(pos6, speed);
+                        } else if (speed == -1){
+                            LCD_Display_letter(pos6, 17); // R
+                        }
+                        if (speed == 0) {
+                            toggleLEDs();
+                        }
+                        LCD_Display_Buttons(1);
                     }
-                    if (speed >= 0) {
-                        LCD_Display_digit(pos6, speed);
-                    } else if (speed == -1){
-                        LCD_Display_letter(pos6, 17); // R
-                    }
-                    if (speed == 0) {
-                        toggleLEDs();
-                    }
-                    LCD_Display_Buttons(1);
-                }
             }
         }
         setRowsLow();
 }
 
-#pragma vector = PORT1_VECTOR       // Using PORT1_VECTOR interrupt because P1.4 and P1.5 are in port 1
+#pragma vector = PORT1_VECTOR       // Using PORT1_VECTOR interrupt because P1.5 is in port 1
 __interrupt void PORT1_ISR(void)
 {
     Key();
 
-    GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN3);
-    GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN4);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN5);
-    GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN6);
+}
+
+#pragma vector = PORT2_VECTOR       // Using PORT1_VECTOR interrupt because P2.7 is in port 1
+__interrupt void PORT2_ISR(void)
+{
+    Key();
+
+    GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN7);
 }
 
 //// Timer A0 interrupt service routine
