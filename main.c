@@ -5,9 +5,15 @@
 #include "HAL_FR4133LP_LCD.h"
 #include "HAL_FR4133LP_Learn_Board.h"
 
+
+#define MAX_DIST 23200
+#define SPEED_OF_SOUND 340
+
 void setRowsHigh();
 void setRowsLow();
 void Key();
+void poll();
+
 char pressedKey;
 int speed;
 
@@ -49,7 +55,18 @@ void main (void)
 
     _EINT();        // Start interrupt
 
-    glow(); // tight-poll the ultrasonic sensor
+    //    glow(); // tight-poll the ultrasonic sensor
+    // instead of call function glow(), just put the set up code below:
+    // P2.5 trigger
+    // P1.3 echo
+    // P5.0 LED/motor
+    GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN5);
+    GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
+    GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN0);
+    GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN0);
+    while(1)  // tight polling loop, should be replaced by periodic polling interrupt in keypadButton.c
+        poll();
 
     PMM_unlockLPM5();           // Need this for LED to turn on- in case of "abnormal off state"
     __bis_SR_register(LPM4_bits + GIE);     // Need this for interrupts or else "abnormal termination"
@@ -131,6 +148,32 @@ void Key()
         }
         setRowsLow();
 }
+
+void poll() {
+    unsigned long timeElapsed;
+    unsigned long pulseWidth;
+
+    GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN5);
+//    delay EXACTLY 10 microseconds via TimerA or RTC.h library
+//    __delay_cycles(160); // 10ms = 1/(16MHz processor)*150 cycles
+    GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
+
+    // poll P1.3 until we read a low
+    while (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_LOW);
+    timeElapsed = 0;
+    // poll P1.3 until we read a high
+    while (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_HIGH){
+        timeElapsed++;
+    };
+    pulseWidth = timeElapsed;
+
+    if (pulseWidth < MAX_DIST/1600) { // magic number
+        GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN0);
+    } else {
+        GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN0);
+    }
+}
+
 
 #pragma vector = PORT1_VECTOR       // Using PORT1_VECTOR interrupt because P1.5 is in port 1
 __interrupt void PORT1_ISR(void)
