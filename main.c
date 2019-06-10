@@ -4,12 +4,24 @@
 #include "msp430fr4133.h"
 #include "HAL_FR4133LP_LCD.h"
 #include "HAL_FR4133LP_Learn_Board.h"
+#include "stdbool.h"
+
+#define completePeriod 511
 
 void setRowsHigh();
 void setRowsLow();
 void Key();
+void setMotorsA_B_forward();
+void setMotorsA_forward_B_backward();
+void setMotorsA_backward_B_forward();
+void setMotorsA_B_backward();
+void setPWM();
+
 char pressedKey;
 int speed;
+int highPeriod;
+Timer_A_initCompareModeParam initComp2Param = {0};
+
 
 void main (void)
 {
@@ -28,6 +40,14 @@ void main (void)
 
     P1OUT |= 0x01; // turn on red LED P1.0
     P4OUT &= 0x00; // turn off green LED P4.0
+    // Set PWM PIN
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P8, GPIO_PIN1, GPIO_PRIMARY_MODULE_FUNCTION);
+    // Set Motor PINS to GPIO
+    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN0);                  // Motor A Input 1
+    GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN1);                  // Motor A Input 2
+    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN2);                  // Motor B Input 1
+    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN3);                  // Motor B Input 2
+    Brake();
 
     // ROWS ARE OUTPUTS
     GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN4);                  // Row 1: Output direction
@@ -48,6 +68,25 @@ void main (void)
     GPIO_enableInterrupt(GPIO_PORT_P2, GPIO_PIN7);
 
     _EINT();        // Start interrupt
+    PMM_unlockLPM5(); // PWM related
+
+    //Start timer
+    Timer_A_initUpModeParam param = {0};
+    param.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
+    param.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
+    param.timerPeriod = completePeriod;
+    param.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
+    param.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE;
+    param.timerClear = TIMER_A_DO_CLEAR;
+    param.startTimer = true;
+    Timer_A_initUpMode(TIMER_A1_BASE, &param);
+
+
+    //Initialize compare mode to generate PWM
+    initComp2Param.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_2;
+    initComp2Param.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE;
+    initComp2Param.compareOutputMode = TIMER_A_OUTPUTMODE_RESET_SET;
+
 
     glow(); // tight-poll the ultrasonic sensor
 
@@ -71,6 +110,59 @@ void setRowsLow(){
     GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- LOW
 }
 
+void Brake(){
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0);
+    GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1);
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2);
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
+    // Initialize speed to 0 m/s
+    setPWM(0);
+}
+void goBackwards(){
+    // set Motors A and B backwards
+    // Motor A - Clockwise
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - Low
+    // Motor B - Counter-Clockwise
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - Low
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3); // Motor B Input 2 - High
+}
+
+void turnRight(){
+    // set Motors A backward and Motor B forward
+    // Motor A - Clockwise
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - Low
+    // Motor B - Clockwise
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3); // Motor B Input 2 - Low
+}
+
+void turnLeft(){
+    // set Motor A forward and Motor B backward
+    // Motor A - Counter-Clockwise
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - Low
+    GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - High
+    // Motor B - Counter-Clockwise
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - Low
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3); // Motor B Input 2 - High
+}
+
+void goForward(){
+    // set Motors A and B forward
+    // Motor A - Counter-Clockwise
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - Low
+    GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - High
+    // Motor B - Clockwise
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3); // Motor B Input 2 - Low
+}
+
+void setPWM(int level){
+    initComp2Param.compareValue = level * 100;
+    Timer_A_initCompareMode(TIMER_A1_BASE, &initComp2Param);
+    _delay_cycles(2000);
+}
 void Key()
 {
         if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_LOW){     // Column 1 to GND
@@ -79,6 +171,7 @@ void Key()
                 LCD_Clear();
                 if (speed < 9) {
                     speed++;
+                    goForward();
                 }
                 LCD_Display_digit(pos6, speed);
                 LCD_Display_Buttons(1);
@@ -96,37 +189,40 @@ void Key()
                     speed = 0;
                     P1OUT |= 0x01; // turn on red LED P1.0
                     P4OUT &= 0x00; // turn off green LED P4.0
+                    turnLeft();
                 }
             }
-        } else
+        } else {
             if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_LOW) {     // Column 2 to GND
-            GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
-            if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
-                LCD_Clear();
-                LCD_Display_letter(pos1, 17); // R
-                LCD_Display_letter(pos2, 8); // I
-                LCD_Display_letter(pos3, 6); // G
-                LCD_Display_letter(pos4, 7); // H
-                LCD_Display_letter(pos5, 19); // T
-                speed = 0;
-                P1OUT |= 0x01; // turn on red LED P1.0
-                P4OUT &= 0x00; // turn off green LED P4.0
-            } else {
-                    GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
-                    if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
-                        LCD_Clear();
-                        if (speed > -1) {
-                            speed--;
-                        }
-                        if (speed >= 0) {
-                            LCD_Display_digit(pos6, speed);
-                        } else if (speed == -1){
-                            LCD_Display_letter(pos6, 17); // R
-                        }
-                        if (speed == 0) {
-                            toggle_direction_LEDs();
-                        }
-                        LCD_Display_Buttons(1);                    }
+                GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
+                if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
+                    LCD_Clear();
+                    LCD_Display_letter(pos1, 17); // R
+                    LCD_Display_letter(pos2, 8); // I
+                    LCD_Display_letter(pos3, 6); // G
+                    LCD_Display_letter(pos4, 7); // H
+                    LCD_Display_letter(pos5, 19); // T
+                    P1OUT |= 0x01; // turn on red LED P1.0
+                    P4OUT &= 0x00; // turn off green LED P4.0
+                    turnRight();
+                } else {
+                        GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
+                        if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
+                            LCD_Clear();
+                            if (speed > -1) {
+                                speed--;
+                            }
+                            if (speed >= 0) {
+                                LCD_Display_digit(pos6, speed);
+                            } else if (speed == -1){
+                                LCD_Display_letter(pos6, 17); // R
+                                goBackwards();
+                            }
+                            if (speed == 0) {
+                                toggle_direction_LEDs();
+                            }
+                            LCD_Display_Buttons(1);                    }
+                }
             }
         }
         setRowsLow();
@@ -136,7 +232,7 @@ void Key()
 __interrupt void PORT1_ISR(void)
 {
     Key();
-
+    setPWM(speed);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN5);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN6);
 }
@@ -145,6 +241,6 @@ __interrupt void PORT1_ISR(void)
 __interrupt void PORT2_ISR(void)
 {
     Key();
-
+    setPWM(speed);
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN7);
 }
