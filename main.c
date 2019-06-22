@@ -6,8 +6,7 @@
 #include "HAL_FR4133LP_Learn_Board.h"
 #include "stdbool.h"
 
-#define completePeriod 511
-
+void glow();
 void setRowsHigh();
 void setRowsLow();
 void Key();
@@ -16,6 +15,7 @@ void setMotorsA_forward_B_backward();
 void setMotorsA_backward_B_forward();
 void setMotorsA_B_backward();
 void setPWM();
+void Brake();
 
 char pressedKey;
 int speed;
@@ -25,6 +25,7 @@ Timer_A_initCompareModeParam initComp2Param = {0};
 
 void main (void)
 {
+
     WDTCTL = WDTPW | WDTHOLD;               // Stop watchdog timer
     PM5CTL0 &= ~LOCKLPM5;                   // Disable the GPIO power-on default high-impedance mode
                                             // to activate previously configured port settings
@@ -32,6 +33,7 @@ void main (void)
     Init_LCD();                                 //Initialize LCD
 
     speed = 0;
+    highPeriod = 0;
     LCD_Display_Buttons(1); // SPEED
     LCD_Display_digit(pos6, speed); // 0
 
@@ -40,14 +42,6 @@ void main (void)
 
     P1OUT |= 0x01; // turn on red LED P1.0
     P4OUT &= 0x00; // turn off green LED P4.0
-    // Set PWM PIN
-    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P8, GPIO_PIN1, GPIO_PRIMARY_MODULE_FUNCTION);
-    // Set Motor PINS to GPIO
-    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN0);                  // Motor A Input 1
-    GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN1);                  // Motor A Input 2
-    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN2);                  // Motor B Input 1
-    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN3);                  // Motor B Input 2
-    Brake();
 
     // ROWS ARE OUTPUTS
     GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN4);                  // Row 1: Output direction
@@ -67,8 +61,17 @@ void main (void)
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN7);
     GPIO_enableInterrupt(GPIO_PORT_P2, GPIO_PIN7);
 
-    _EINT();        // Start interrupt
+    // Set PWM PIN
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P8, GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
+    // Set Motor PINS to GPIO
+    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN0);                  // Motor A Input 1
+    GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN1);                  // Motor A Input 2
+    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN2);                  // Motor B Input 1
+    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN1);                  // Motor B Input 2
+    Brake();
     PMM_unlockLPM5(); // PWM related
+
+    _EINT();        // Start interrupt
 
     //Start timer
     Timer_A_initUpModeParam param = {0};
@@ -114,18 +117,19 @@ void Brake(){
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0);
     GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1);
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2);
-    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1);
     // Initialize speed to 0 m/s
-    setPWM(0);
+    setPWM(highPeriod);
 }
 void goBackwards(){
+    setPWM(100);
     // set Motors A and B backwards
     // Motor A - Clockwise
     GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
     GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - Low
     // Motor B - Counter-Clockwise
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - Low
-    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3); // Motor B Input 2 - High
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - High
 }
 
 void turnRight(){
@@ -135,7 +139,7 @@ void turnRight(){
     GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - Low
     // Motor B - Clockwise
     GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - High
-    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3); // Motor B Input 2 - Low
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - Low
 }
 
 void turnLeft(){
@@ -145,7 +149,7 @@ void turnLeft(){
     GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - High
     // Motor B - Counter-Clockwise
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - Low
-    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3); // Motor B Input 2 - High
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - High
 }
 
 void goForward(){
@@ -155,11 +159,11 @@ void goForward(){
     GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - High
     // Motor B - Clockwise
     GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - High
-    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3); // Motor B Input 2 - Low
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - Low
 }
 
-void setPWM(int level){
-    initComp2Param.compareValue = level * 100;
+void setPWM(){
+    initComp2Param.compareValue = highPeriod;
     Timer_A_initCompareMode(TIMER_A1_BASE, &initComp2Param);
     _delay_cycles(2000);
 }
@@ -171,6 +175,7 @@ void Key()
                 LCD_Clear();
                 if (speed < 9) {
                     speed++;
+                    highPeriod = 100 * speed;
                     goForward();
                 }
                 LCD_Display_digit(pos6, speed);
@@ -186,7 +191,6 @@ void Key()
                     LCD_Display_letter(pos2, 4); // E
                     LCD_Display_letter(pos3, 5); // F
                     LCD_Display_letter(pos4, 19); // T
-                    speed = 0;
                     P1OUT |= 0x01; // turn on red LED P1.0
                     P4OUT &= 0x00; // turn off green LED P4.0
                     turnLeft();
@@ -211,6 +215,11 @@ void Key()
                             LCD_Clear();
                             if (speed > -1) {
                                 speed--;
+                                highPeriod = 100 * speed;
+                                if(highPeriod <= 0){
+                                    highPeriod = 0;
+                                }
+                                goForward();
                             }
                             if (speed >= 0) {
                                 LCD_Display_digit(pos6, speed);
@@ -225,6 +234,7 @@ void Key()
                 }
             }
         }
+        highPeriod = 100 * speed;
         setRowsLow();
 }
 
@@ -232,15 +242,15 @@ void Key()
 __interrupt void PORT1_ISR(void)
 {
     Key();
-    setPWM(speed);
+    setPWM();
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN5);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN6);
 }
 
-#pragma vector = PORT2_VECTOR       // Using PORT1_VECTOR interrupt because P2.7 is in port 1
+#pragma vector = PORT2_VECTOR       // Using PORT1_VECTOR interrupt because P2.7 is in port 2
 __interrupt void PORT2_ISR(void)
 {
     Key();
-    setPWM(speed);
+    setPWM();
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN7);
 }
