@@ -5,6 +5,7 @@
 #include "HAL_FR4133LP_LCD.h"
 #include "HAL_FR4133LP_Learn_Board.h"
 #include "stdbool.h"
+#define completePeriod 511
 
 void glow();
 void setRowsHigh();
