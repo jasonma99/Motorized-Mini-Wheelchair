@@ -49,7 +49,6 @@
  * Please consult device datasheet for more info, under "Input/Output Diagrams"
  *
  **/
-
 #ifndef __BOARD_H__
 #define __BOARD_H__
 

@@ -14,8 +14,14 @@
 #define MAX_DIST 23200
 #define SPEED_OF_SOUND 340
 
+int direction_state;
+
 void glow(void);
 void poll();
+void Forward();
+void Left();
+void Right();
+void Backward();
 
 void glow (void)
 {
@@ -61,8 +67,69 @@ void poll() {
         GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1);
         GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2);
         GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1);
-
-    } else {
-        GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN0);
     }
+    else {
+        GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN0);
+        switch(direction_state){
+            case 1:
+                Forward();
+                break;
+            case 2:
+                Right();
+                break;
+            case 3:
+                Left();
+                break;
+            case 4:
+                Backward();
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+void Forward(){
+    direction_state = 1;
+    // set Motors A and B forward
+    // Motor A - Counter-Clockwise
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - Low
+    GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - High
+    // Motor B - Clockwise
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - Low
+}
+
+
+void Right(){
+    direction_state = 2;
+    // set Motors A backward and Motor B forward
+    // Motor A - Clockwise
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - Low
+    // Motor B - Clockwise
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - Low
+}
+
+void Left(){
+    direction_state = 3;
+    // set Motor A forward and Motor B backward
+    // Motor A - Counter-Clockwise
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - Low
+    GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - High
+    // Motor B - Counter-Clockwise
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - Low
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - High
+}
+
+void Backward(){
+    direction_state = 4;
+    // set Motors A and B backwards
+    // Motor A - Clockwise
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - Low
+    // Motor B - Counter-Clockwise
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - Low
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - High
 }

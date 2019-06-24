@@ -5,21 +5,24 @@
 #include "HAL_FR4133LP_LCD.h"
 #include "HAL_FR4133LP_Learn_Board.h"
 #include "stdbool.h"
+
 #define completePeriod 511
+
 void glow();
 void setRowsHigh();
 void setRowsLow();
 void Key();
-void setMotorsA_B_forward();
-void setMotorsA_forward_B_backward();
-void setMotorsA_backward_B_forward();
-void setMotorsA_B_backward();
+void goForward();
+void turnRight();
+void turnLeft();
+void goBackwards();
 void setPWM();
 void Brake();
 
 char pressedKey;
 int speed;
-
+int highPeriod;
+extern int direction_state;
 Timer_A_initCompareModeParam initComp2Param = {0};
 
 
@@ -34,6 +37,7 @@ void main (void)
 
     speed = 0;
     highPeriod = 0;
+    direction_state = 0;
     LCD_Display_Buttons(1); // SPEED
     LCD_Display_digit(pos6, speed); // 0
 
@@ -119,20 +123,21 @@ void Brake(){
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2);
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1);
     // Initialize speed to 0 m/s
-    setPWM(highPeriod);
+    setPWM();
 }
-void goBackwards(){
-    setPWM(100);
-    // set Motors A and B backwards
-    // Motor A - Clockwise
-    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
-    GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - Low
-    // Motor B - Counter-Clockwise
-    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - Low
-    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - High
+void goForward(){
+    direction_state = 1;
+    // set Motors A and B forward
+    // Motor A - Counter-Clockwise
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - Low
+    GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - High
+    // Motor B - Clockwise
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - Low
 }
 
 void turnRight(){
+    direction_state = 2;
     // set Motors A backward and Motor B forward
     // Motor A - Clockwise
     GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
@@ -143,6 +148,7 @@ void turnRight(){
 }
 
 void turnLeft(){
+    direction_state = 3;
     // set Motor A forward and Motor B backward
     // Motor A - Counter-Clockwise
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - Low
@@ -152,15 +158,18 @@ void turnLeft(){
     GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - High
 }
 
-void goForward(){
-    // set Motors A and B forward
-    // Motor A - Counter-Clockwise
-    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - Low
-    GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - High
-    // Motor B - Clockwise
-    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - High
-    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - Low
+void goBackwards(){
+    direction_state = 4;
+    setPWM(100);
+    // set Motors A and B backwards
+    // Motor A - Clockwise
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
+    GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1); // Motor A Input 2 - Low
+    // Motor B - Counter-Clockwise
+    GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2); // Motor B Input 1 - Low
+    GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN1); // Motor B Input 2 - High
 }
+
 
 void setPWM(){
     initComp2Param.compareValue = highPeriod;
