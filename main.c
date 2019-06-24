@@ -6,7 +6,6 @@
 #include "HAL_FR4133LP_Learn_Board.h"
 #include "stdbool.h"
 #define completePeriod 511
-
 void glow();
 void setRowsHigh();
 void setRowsLow();
@@ -20,7 +19,7 @@ void Brake();
 
 char pressedKey;
 int speed;
-int highPeriod;
+
 Timer_A_initCompareModeParam initComp2Param = {0};
 
 

@@ -56,6 +56,12 @@ void poll() {
 
     if (pulseWidth < MAX_DIST/1600) { // magic number
         GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN0);
+        // Kill the motors
+        GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1);
+
     } else {
         GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN0);
     }
