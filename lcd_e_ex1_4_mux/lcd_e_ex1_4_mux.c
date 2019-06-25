@@ -70,7 +70,30 @@
 //!
 //*****************************************************************************
 #include "driverlib.h"
+#include <math.h>
 
+const char digit[10] =
+{
+        0xFC,  /* "0" */
+        0x60,  /* "1" */
+        0xDB,  /* "2" */
+        0xF3,  /* "3" */
+        0x67,  /* "4" */
+        0xB7,  /* "5" */
+        0xBF,  /* "6" */
+        0xE4,  /* "7" */
+        0xFF,  /* "8" */
+        0xF7   /* "9" */
+};
+
+const char addr[6] = {
+      LCD_E_MEMORY_BLINKINGMEMORY_18,
+      LCD_E_MEMORY_BLINKINGMEMORY_2,
+      LCD_E_MEMORY_BLINKINGMEMORY_10,
+      LCD_E_MEMORY_BLINKINGMEMORY_8,
+      LCD_E_MEMORY_BLINKINGMEMORY_6,
+      LCD_E_MEMORY_BLINKINGMEMORY_4
+};
 void main(void)
 {
 	// Hold watchdog
@@ -168,6 +191,37 @@ void main(void)
 
        LCD_E_setMemory(LCD_E_BASE, LCD_E_MEMORY_BLINKINGMEMORY_12, 0xE0);
        LCD_E_setMemory(LCD_E_BASE, LCD_E_MEMORY_BLINKINGMEMORY_13, 0x0F);
+
+       double gg = 1234.33;
+
+       double integer;
+       double decimal = modf(gg, &integer);
+
+       int intpart = (int)integer;
+       int decpart = (int)(decimal*100+0.5);
+
+       int count = 0;
+       while(decpart!=0){
+          LCD_E_setMemory(LCD_E_BASE, addr[count], digit[decpart%10]);
+          decpart = decpart/10;
+          count ++;
+       }
+       while (intpart!=0){
+           //printf("gg:%i\n", gg%10);
+           LCD_E_setMemory(LCD_E_BASE, addr[count], digit[intpart%10]);
+           intpart = intpart/10;
+           count ++;
+       }
+
+
+
+
+//       LCD_E_setMemory(LCD_E_BASE, LCD_E_MEMORY_BLINKINGMEMORY_5, 0x01); // A1DP
+//       LCD_E_setMemory(LCD_E_BASE, LCD_E_MEMORY_BLINKINGMEMORY_7, 0x01); // A2DP
+//       LCD_E_setMemory(LCD_E_BASE, LCD_E_MEMORY_BLINKINGMEMORY_9, 0x01); // A3DP
+       LCD_E_setMemory(LCD_E_BASE, LCD_E_MEMORY_BLINKINGMEMORY_11, 0x01); // A4DP
+//       LCD_E_setMemory(LCD_E_BASE, LCD_E_MEMORY_BLINKINGMEMORY_3, 0x01); // A5DP
+
 
        // Turn on LCD
        LCD_E_on(LCD_E_BASE);
