@@ -46,11 +46,17 @@
 #define pos4 10  // Digit A4 - L10
 #define pos5 2   // Digit A5 - L2
 #define pos6 18  // Digit A6 - L18
+#define battery 12  // display battery
 
 extern void Init_LCD();
 extern void LCD_Clear();
 extern void LCD_Display_digit(unsigned char pos, unsigned char ch);
 extern void LCD_Display_letter(unsigned char pos, unsigned char ch);
+
+extern void LCD_Display_battery(unsigned char pos, unsigned char ch);
+extern void LCD_Display_R();
+extern void LCD_Display_float(double gg);
+
 extern void LCD_Display_TX();
 extern void LCD_Display_RX();
 extern void LCD_Display_Buttons(unsigned char btn);

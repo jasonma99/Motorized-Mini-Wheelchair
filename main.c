@@ -123,12 +123,13 @@ void Key()
         if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_LOW){     // Column 1 to GND
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
             if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
-                LCD_Clear();
-                if (speed < 9) {
+//                LCD_Clear();
+                if (speed < 6) {
                     speed++;
                 }
-                LCD_Display_digit(pos6, speed);
-                LCD_Display_Buttons(1);
+//                LCD_Display_digit(pos6, speed);
+                LCD_Display_battery(battery, speed);
+//                LCD_Display_Buttons(1);/
                 if (speed == 1) {
                     toggle_direction_LEDs();
                 }
@@ -168,12 +169,15 @@ void Key()
                         if (speed >= 0) {
                             LCD_Display_digit(pos6, speed);
                         } else if (speed == -1){
-                            LCD_Display_letter(pos6, 17); // R
+//                          LCD_Display_letter(pos6, 17); // R
+                            LCD_Display_R();
                         }
                         if (speed == 0) {
                             toggle_direction_LEDs();
+                            LCD_Display_Buttons(18);            //display STOP
                         }
-                        LCD_Display_Buttons(1);                    }
+//                        LCD_Display_Buttons(1);
+                    }
             }
         }
         setRowsLow();

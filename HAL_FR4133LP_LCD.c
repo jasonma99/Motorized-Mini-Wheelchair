@@ -37,6 +37,7 @@
  */
 #include "msp430fr4133.h"
 #include "HAL_FR4133LP_LCD.h"
+#include <math.h>
 
 //LCD digit display table
 const char digit[10] =
@@ -85,6 +86,35 @@ const char alphabet[28][2] =
 		{0x03, 0x50},  /* "+" */ //26
 		{0x03, 0x00}   /* "-" */ //27
 };
+
+      // Battery symbol for speed 1-6:
+      // speed 1: MEM_13 0x03
+      // speed 2: MEM_13 0x03, MEM_12 0x20
+      // speed 3: MEM_13 0x07, MEM_12 0x20
+      // speed 4: MEM_13 0x07, MEM_12 0x60
+      // speed 5: MEM_13 0x0F, MEM_12 0x60
+      // speed 6: MEM_13 0x0F, MEM_12 oxE0
+
+const char addr[6]=
+{
+ 18,
+ 2,
+ 10,
+ 8,
+ 6,
+ 4
+};
+
+const char battery_speed[6][2] =
+{
+     {0x00, 0x03},   // speed 1
+     {0x20, 0x03},   // speed 2
+     {0x20, 0x07},   // speed 3
+     {0x60, 0x07},   // speed 4
+     {0x60, 0x0F},   // speed 5
+     {0xE0, 0x0F}    // speed 6
+};
+
 
 // Initialize LCD
 void Init_LCD()
@@ -138,6 +168,40 @@ void LCD_Display_letter(unsigned char pos, unsigned char ch)
 	LCDMEM[pos+1] = alphabet[ch][1];
 }
 
+// LCD letter display function
+void LCD_Display_battery(unsigned char pos, unsigned char ch)
+{
+    LCDMEM[pos]   = battery_speed[ch][0];
+    LCDMEM[pos+1] = battery_speed[ch][1];
+}
+void LCD_Display_R()
+{
+    LCDMEM[12] = 0x02;
+}
+
+void LCD_Display_float(double gg){
+
+//    double gg = 1234.56;
+    double integer;
+    double decimal = modf(gg, &integer);
+
+    int intpart = (int)integer;
+    int decpart = (int)(decimal*100+0.5);
+
+    int count = 0;
+    while(decpart!=0){
+       LCDMEM[addr[count]] = digit[decpart%10];
+       decpart = decpart/10;
+       count ++;
+    }
+    while (intpart!=0){
+        //printf("gg:%i\n", gg%10);
+        LCDMEM[addr[count]] =  digit[intpart%10];
+        intpart = intpart/10;
+        count ++;
+    }
+}
+
 // Display "TX"
 void LCD_Display_TX()
 {
@@ -162,6 +226,7 @@ void LCD_Display_MSP_IR()
 	LCD_Display_letter(pos5,8); //I
 	LCD_Display_letter(pos6,17);//R
 }
+
 
 // Display Button
 void LCD_Display_Buttons(unsigned char btn)
@@ -238,6 +303,16 @@ void LCD_Display_Buttons(unsigned char btn)
 	case 16:
 		LCD_Display_digit(pos1,1);//1
 		break;
+	case 17:
+	    LCD_Display_letter(pos2,1); //B
+	    LCD_Display_letter(pos3,0); //A
+	    LCD_Display_letter(pos4,2); //C
+	    LCD_Display_letter(pos5,10); //K
+	case 18:
+	    LCD_Display_letter(pos2,18); //S
+	    LCD_Display_letter(pos3,19); //T
+	    LCD_Display_letter(pos4,14); //O
+	    LCD_Display_letter(pos5,15); //P
 	default:
 		LCD_Display_letter(pos1,12);//M
 		LCD_Display_letter(pos2,18);//S
