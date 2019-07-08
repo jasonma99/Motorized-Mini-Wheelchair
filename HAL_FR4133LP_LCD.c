@@ -194,6 +194,9 @@ void LCD_Display_float(double gg){
        decpart = decpart/10;
        count ++;
     }
+
+    LCDMEM[11] = 0x01;
+    count = 2;
     while (intpart!=0){
         //printf("gg:%i\n", gg%10);
         LCDMEM[addr[count]] =  digit[intpart%10];

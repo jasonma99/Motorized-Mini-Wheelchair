@@ -167,7 +167,8 @@ void Key()
                             speed--;
                         }
                         if (speed >= 0) {
-                            LCD_Display_digit(pos6, speed);
+//                            LCD_Display_digit(pos6, speed);
+                            LCD_Display_battery(battery, speed);
                         } else if (speed == -1){
 //                          LCD_Display_letter(pos6, 17); // R
                             LCD_Display_R();
