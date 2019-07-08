@@ -1,6 +1,7 @@
 #include <msp430.h>
 #include "driverlib.h"
 #include "Board.h"
+#include "distanceSensor.h"
 #include "msp430fr4133.h"
 #include "HAL_FR4133LP_LCD.h"
 #include "HAL_FR4133LP_Learn_Board.h"
@@ -24,8 +25,7 @@ char pressedKey;
 int speed;
 int highPeriod;
 extern int direction_state;
-Timer_A_initCompareModeParam initComp2Param = {0};
-
+Timer_A_initCompareModeParam initCompParam = {0};
 
 void main (void)
 {
@@ -79,8 +79,7 @@ void main (void)
     _EINT();        // Start interrupt
 
     //=================================================================================================
-    // glow(); // tight-poll the ultrasonic sensor
-    // instead of call function glow(), just put the set up code below:
+    // instead of tight polling poll(), just put the set up code below for timer interrupts on the distance sensor:
     // P2.5 trigger
     // P1.3 echo
     // P5.0 LED/motor
@@ -89,53 +88,50 @@ void main (void)
     GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
     GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN0);
     GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN0);
-    //    while(1)  // tight polling loop, should be replaced by periodic polling interrupt in keypadButton.c
-    //        poll();
+
+    // PWM Timer ----------------------------------------------------------------------------------
     //Start timer
-    Timer_A_initUpModeParam param = {0};
+    Timer_A_initContinuousModeParam param = {0};
     param.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
     param.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    param.timerPeriod = completePeriod;
+    //param.timerPeriod = completePeriod;
     param.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
-    param.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE;
+    //param.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE;
     param.timerClear = TIMER_A_DO_CLEAR;
     param.startTimer = true;
     Timer_A_initUpMode(TIMER_A1_BASE, &param);
 
 
     //Initialize compare mode to generate PWM
-    initComp2Param.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_2;
-    initComp2Param.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE;
-    initComp2Param.compareOutputMode = TIMER_A_OUTPUTMODE_RESET_SET;
+    initCompParam.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_2;
+    //initCompParam.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE;
+    //initCompParam.compareOutputMode = TIMER_A_OUTPUTMODE_RESET_SET;
 
-
-    glow(); // tight-poll the ultrasonic sensor
-
+    // Distance Sensor Interrupts ----------------------------------------------------------------------------
     //Start timer in continuous mode sourced by SMCLK
-        Timer_A_initContinuousModeParam initContParam = {0};
-        initContParam.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
-        initContParam.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-        initContParam.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
-        initContParam.timerClear = TIMER_A_DO_CLEAR;
-        initContParam.startTimer = false;
-        Timer_A_initContinuousMode(TIMER_A1_BASE, &initContParam);
+//    Timer_A_initContinuousModeParam initContParam = {0};
+//    initContParam.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
+//    initContParam.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
+//    initContParam.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
+//    initContParam.timerClear = TIMER_A_DO_CLEAR;
+//    initContParam.startTimer = false;
+//    Timer_A_initContinuousMode(TIMER_A1_BASE, &initContParam);
 
-        //Initiaze compare mode
-        Timer_A_clearCaptureCompareInterrupt(TIMER_A1_BASE,
-            TIMER_A_CAPTURECOMPARE_REGISTER_0
-            );
-
-        Timer_A_initCompareModeParam initCompParam = {0};
-        initCompParam.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_0;
-        initCompParam.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE;
-        initCompParam.compareOutputMode = TIMER_A_OUTPUTMODE_OUTBITVALUE;
-        initCompParam.compareValue = COMPARE_VALUE;
-        Timer_A_initCompareMode(TIMER_A1_BASE, &initCompParam);
-
-
-        Timer_A_startCounter( TIMER_A1_BASE,
-                TIMER_A_CONTINUOUS_MODE
+    //Initiaze compare mode
+    Timer_A_clearCaptureCompareInterrupt(TIMER_A1_BASE,
+        TIMER_A_CAPTURECOMPARE_REGISTER_0
         );
+
+    //initCompParam.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_0;
+    initCompParam.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE;
+    initCompParam.compareOutputMode = TIMER_A_OUTPUTMODE_OUTBITVALUE;
+    initCompParam.compareValue = COMPARE_VALUE;
+    //Timer_A_initCompareMode(TIMER_A1_BASE, &initCompParam);
+
+
+    Timer_A_startCounter( TIMER_A1_BASE,
+            TIMER_A_CONTINUOUS_MODE
+    );
     // ==========================================================================================
 
     PMM_unlockLPM5();           // Need this for LED to turn on- in case of "abnormal off state"
@@ -213,8 +209,8 @@ void goBackwards(){
 
 
 void setPWM(){
-    initComp2Param.compareValue = highPeriod;
-    Timer_A_initCompareMode(TIMER_A1_BASE, &initComp2Param);
+    initCompParam.compareValue = highPeriod;
+    Timer_A_initCompareMode(TIMER_A1_BASE, &initCompParam);
     _delay_cycles(2000);
 }
 void Key()
@@ -287,32 +283,6 @@ void Key()
         highPeriod = 100 * speed;
         setRowsLow();
 }
-
-void poll() {
-    unsigned long timeElapsed;
-    unsigned long pulseWidth;
-
-    GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN5);
-//    delay EXACTLY 10 microseconds via TimerA or RTC.h library
-//    __delay_cycles(160); // 10ms = 1/(16MHz processor)*150 cycles
-    GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
-
-    // poll P1.3 until we read a low
-    while (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_LOW);
-    timeElapsed = 0;
-    // poll P1.3 until we read a high
-    while (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN3) == GPIO_INPUT_PIN_HIGH){
-        timeElapsed++;
-    };
-    pulseWidth = timeElapsed;
-
-    if (pulseWidth < MAX_DIST/1600) { // magic number
-        GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN0);
-    } else {
-        GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN0);
-    }
-}
-
 
 #pragma vector = PORT1_VECTOR       // Using PORT1_VECTOR interrupt because P1.5 is in port 1
 __interrupt void PORT1_ISR(void)
