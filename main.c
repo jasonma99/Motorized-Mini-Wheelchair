@@ -10,6 +10,7 @@
 #define completePeriod 511
 #define MAX_DIST 23200
 #define COMPARE_VALUE 65535
+
 void setRowsHigh();
 void setRowsLow();
 void Key();
@@ -21,10 +22,16 @@ void setPWM();
 void Brake();
 
 void poll();
+void determine_traveling_speed();
+
 char pressedKey;
 int speed;
 int highPeriod;
 extern int direction_state;
+int timed_counter;
+double distance_traveled;
+double current_speed;
+
 Timer_A_initCompareModeParam initCompParam = {0};
 
 void main (void)
@@ -35,6 +42,10 @@ void main (void)
                                             // to activate previously configured port settings
 
     Init_LCD();                                 //Initialize LCD
+
+    timed_counter = 0;
+    distance_traveled = 0;
+    current_speed = 0.72;
 
     speed = 0;
     highPeriod = 0;
@@ -91,42 +102,44 @@ void main (void)
 
     // PWM Timer ----------------------------------------------------------------------------------
     //Start timer
-    Timer_A_initContinuousModeParam param = {0};
+    Timer_A_initUpModeParam param = {0};
     param.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
     param.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    //param.timerPeriod = completePeriod;
+    param.timerPeriod = completePeriod;
     param.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
-    //param.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE;
+    param.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE;
     param.timerClear = TIMER_A_DO_CLEAR;
     param.startTimer = true;
     Timer_A_initUpMode(TIMER_A1_BASE, &param);
 
 
     //Initialize compare mode to generate PWM
-    initCompParam.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_2;
-    //initCompParam.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE;
-    //initCompParam.compareOutputMode = TIMER_A_OUTPUTMODE_RESET_SET;
+    initCompParam.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_0;
+    initCompParam.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE;
+    initCompParam.compareOutputMode = TIMER_A_OUTPUTMODE_OUTBITVALUE;
+    // ==========================================================================================
 
-    // Distance Sensor Interrupts ----------------------------------------------------------------------------
+
     //Start timer in continuous mode sourced by SMCLK
-//    Timer_A_initContinuousModeParam initContParam = {0};
-//    initContParam.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
-//    initContParam.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-//    initContParam.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
-//    initContParam.timerClear = TIMER_A_DO_CLEAR;
-//    initContParam.startTimer = false;
-//    Timer_A_initContinuousMode(TIMER_A1_BASE, &initContParam);
+    Timer_A_initContinuousModeParam initContParam = {0};
+    initContParam.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
+    initContParam.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
+    initContParam.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
+    initContParam.timerClear = TIMER_A_DO_CLEAR;
+    initContParam.startTimer = false;
+    Timer_A_initContinuousMode(TIMER_A1_BASE, &initContParam);
 
     //Initiaze compare mode
     Timer_A_clearCaptureCompareInterrupt(TIMER_A1_BASE,
         TIMER_A_CAPTURECOMPARE_REGISTER_0
         );
 
-    //initCompParam.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_0;
-    initCompParam.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE;
-    initCompParam.compareOutputMode = TIMER_A_OUTPUTMODE_OUTBITVALUE;
-    initCompParam.compareValue = COMPARE_VALUE;
-    //Timer_A_initCompareMode(TIMER_A1_BASE, &initCompParam);
+    Timer_A_initCompareModeParam initComp2Param = {0};
+    initComp2Param.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_0;
+    initComp2Param.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE;
+    initComp2Param.compareOutputMode = TIMER_A_OUTPUTMODE_OUTBITVALUE;
+    initComp2Param.compareValue = COMPARE_VALUE;
+    Timer_A_initCompareMode(TIMER_A1_BASE, &initComp2Param);
 
 
     Timer_A_startCounter( TIMER_A1_BASE,
@@ -160,7 +173,6 @@ void Brake(){
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2);
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1);
     // Initialize speed to 0 m/s
-    setPWM();
 }
 void goForward(){
     direction_state = 1;
@@ -197,7 +209,6 @@ void turnLeft(){
 
 void goBackwards(){
     direction_state = 4;
-    setPWM(100);
     // set Motors A and B backwards
     // Motor A - Clockwise
     GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
@@ -219,7 +230,7 @@ void Key()
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
             if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
                 LCD_Clear();
-                if (speed < 9) {
+                if (speed < 6) {
                     speed++;
                     highPeriod = 100 * speed;
                     goForward();
@@ -276,12 +287,44 @@ void Key()
                             if (speed == 0) {
                                 toggle_direction_LEDs();
                             }
-                            LCD_Display_Buttons(1);                    }
+                            LCD_Display_Buttons(1);
+                        }
                 }
             }
         }
         highPeriod = 100 * speed;
         setRowsLow();
+}
+void determine_traveling_speed(){
+    switch(speed){
+        case -1:
+            current_speed = 0;
+            break;
+        case 0:
+            current_speed = 0;
+            break;
+        case 1:
+            current_speed = 0.13;
+            break;
+        case 2:
+            current_speed = 0.29;
+            break;
+        case 3:
+            current_speed = 0.44;
+            break;
+        case 4:
+            current_speed = 0.58;
+            break;
+        case 5:
+            current_speed = 0.71;
+            break;
+        case 6:
+            current_speed = 0.72;
+            break;
+        default:
+            current_speed = 0;
+            break;
+    }
 }
 
 #pragma vector = PORT1_VECTOR       // Using PORT1_VECTOR interrupt because P1.5 is in port 1
@@ -313,20 +356,30 @@ __attribute__((interrupt(TIMER1_A0_VECTOR)))
 void TIMER1_A0_ISR (void)
 {
     uint16_t compVal = Timer_A_getCaptureCompareCount(TIMER_A1_BASE,
-            TIMER_A_CAPTURECOMPARE_REGISTER_0)
-            + COMPARE_VALUE;
+                TIMER_A_CAPTURECOMPARE_REGISTER_0)
+                + COMPARE_VALUE;
 
     //Toggle LED1
-//    GPIO_toggleOutputOnPin(
-//        GPIO_PORT_LED1,
-//        GPIO_PIN_LED1
-//        );
-    poll();
-
+    if(timed_counter >= 6){ // 2.5 s per 60 s slow
+//        GPIO_toggleOutputOnPin(
+//            GPIO_PORT_LED1,
+//            GPIO_PIN_LED1
+//            );
+        timed_counter = 0;
+        determine_traveling_speed();
+        distance_traveled += current_speed*1.04;
+        LCD_Display_float(distance_traveled);
+        //poll();
+    }
+    else{
+        timed_counter += 1;
+    }
+    setPWM();
     //Add Offset to CCR0
     Timer_A_setCompareValue(TIMER_A1_BASE,
         TIMER_A_CAPTURECOMPARE_REGISTER_0,
         compVal
         );
 }
+
 
