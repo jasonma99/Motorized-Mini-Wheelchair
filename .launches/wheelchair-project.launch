@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="com.ti.ccstudio.debug.launchType.device.debugging">
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_DEBUGGER_PROPERTIES./home/mhtl/School/ECE298/wheelchair-project/targetConfigs/MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot; ?&gt;&#10;&lt;PropertyValues&gt;&#10;&#10;  &lt;property id=&quot;ConnectOnStartup&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;AutoResetOnConnect&quot;&gt;&#10;    &lt;curValue&gt;0&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;&lt;/PropertyValues&gt;&#10;"/>
+<<<<<<< HEAD
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_DEBUGGER_PROPERTIES.D:\UWaterloo\2B\ECE_298_Instrumentation&amp;Prototyping_Lab\CCS\wheelchair-project\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot; ?&gt;&#10;&lt;PropertyValues&gt;&#10;&#10;  &lt;property id=&quot;ConnectOnStartup&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;EnableInstalledBreakpoint&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;&lt;/PropertyValues&gt;&#10;"/>
+=======
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_DEBUGGER_PROPERTIES.C:\Users\illya\wheelchair-project\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot; ?&gt;&#10;&lt;PropertyValues&gt;&#10;&#10;  &lt;property id=&quot;ConnectOnStartup&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;EnableInstalledBreakpoint&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;&lt;/PropertyValues&gt;&#10;"/>
+>>>>>>> motor-control-unit
 <setAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_HIDE_CONFIG_ELEMENT_TYPES">
 <setEntry value="BOARD"/>
 <setEntry value="BYPASSED_CPU"/>
@@ -16,12 +20,21 @@
 </setAttribute>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_LOAD_PROGRAM./home/mhtl/School/ECE298/wheelchair-project/targetConfigs/MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="ALL"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM./home/mhtl/School/ECE298/wheelchair-project/targetConfigs/MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="${build_artifact:wheelchair-project}"/>
+<<<<<<< HEAD
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.D:\UWaterloo\2B\ECE_298_Instrumentation&amp;Prototyping_Lab\CCS\wheelchair-project\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="${build_artifact:wheelchair-project}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT./home/mhtl/School/ECE298/wheelchair-project/targetConfigs/MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="wheelchair-project"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT.D:\UWaterloo\2B\ECE_298_Instrumentation&amp;Prototyping_Lab\CCS\wheelchair-project\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="wheelchair-project"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:wheelchair-project}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM./home/mhtl/School/ECE298/wheelchair-project/targetConfigs/MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="/home/mhtl/School/ECE298/wheelchair-project/Debug/wheelchair-project.out"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.D:\UWaterloo\2B\ECE_298_Instrumentation&amp;Prototyping_Lab\CCS\wheelchair-project\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="D:/UWaterloo\2B\ECE_298_Instrumentation&amp;Prototyping_Lab\CCS\wheelchair-project\Debug\wheelchair-project.out"/>
+=======
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.C:\Users\illya\wheelchair-project\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="${build_artifact:wheelchair-project}"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT./home/mhtl/School/ECE298/wheelchair-project/targetConfigs/MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="wheelchair-project"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT.C:\Users\illya\wheelchair-project\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="wheelchair-project"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:wheelchair-project}"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM./home/mhtl/School/ECE298/wheelchair-project/targetConfigs/MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="/home/mhtl/School/ECE298/wheelchair-project/Debug/wheelchair-project.out"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.C:\Users\illya\wheelchair-project\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1_0/MSP430" value="C:/Users\illya\wheelchair-project\Debug\wheelchair-project.out"/>
+>>>>>>> motor-control-unit
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/wheelchair-project"/>
 </listAttribute>
