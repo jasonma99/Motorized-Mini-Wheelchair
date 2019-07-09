@@ -1,16 +1,14 @@
 #include <msp430.h>
 #include "driverlib.h"
 #include "Board.h"
-#include "distanceSensor.h"
 #include "msp430fr4133.h"
 #include "HAL_FR4133LP_LCD.h"
 #include "HAL_FR4133LP_Learn_Board.h"
 #include "stdbool.h"
 
 #define completePeriod 511
-#define MAX_DIST 23200
-#define COMPARE_VALUE 65535
 
+void glow();
 void setRowsHigh();
 void setRowsLow();
 void Key();
@@ -21,18 +19,11 @@ void goBackwards();
 void setPWM();
 void Brake();
 
-void poll();
-void determine_traveling_speed();
-
 char pressedKey;
 int speed;
 int highPeriod;
-extern int direction_state;
-int timed_counter;
-double distance_traveled;
-double current_speed;
+Timer_A_initCompareModeParam initComp2Param = {0};
 
-Timer_A_initCompareModeParam initCompParam = {0};
 
 void main (void)
 {
@@ -43,13 +34,8 @@ void main (void)
 
     Init_LCD();                                 //Initialize LCD
 
-    timed_counter = 0;
-    distance_traveled = 0;
-    current_speed = 0.72;
-
     speed = 0;
     highPeriod = 0;
-    direction_state = 0;
     LCD_Display_Buttons(1); // SPEED
     LCD_Display_digit(pos6, speed); // 0
 
@@ -84,23 +70,11 @@ void main (void)
     GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN1);                  // Motor A Input 2
     GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN2);                  // Motor B Input 1
     GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN1);                  // Motor B Input 2
-    Brake();
+    goForward();
     PMM_unlockLPM5(); // PWM related
 
     _EINT();        // Start interrupt
 
-    //=================================================================================================
-    // instead of tight polling poll(), just put the set up code below for timer interrupts on the distance sensor:
-    // P2.5 trigger
-    // P1.3 echo
-    // P5.0 LED/motor
-    GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN5);
-    GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN3, GPIO_PRIMARY_MODULE_FUNCTION);
-    GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN0);
-    GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN0);
-
-    // PWM Timer ----------------------------------------------------------------------------------
     //Start timer
     Timer_A_initUpModeParam param = {0};
     param.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
@@ -114,40 +88,13 @@ void main (void)
 
 
     //Initialize compare mode to generate PWM
-    initCompParam.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_0;
-    initCompParam.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE;
-    initCompParam.compareOutputMode = TIMER_A_OUTPUTMODE_OUTBITVALUE;
-    // ==========================================================================================
-
-
-    //Start timer in continuous mode sourced by SMCLK
-    Timer_A_initContinuousModeParam initContParam = {0};
-    initContParam.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
-    initContParam.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    initContParam.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
-    initContParam.timerClear = TIMER_A_DO_CLEAR;
-    initContParam.startTimer = false;
-    Timer_A_initContinuousMode(TIMER_A1_BASE, &initContParam);
-
-    //Initiaze compare mode
-    Timer_A_clearCaptureCompareInterrupt(TIMER_A1_BASE,
-        TIMER_A_CAPTURECOMPARE_REGISTER_0
-        );
-
-    Timer_A_initCompareModeParam initComp2Param = {0};
-    initComp2Param.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_0;
-    initComp2Param.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_ENABLE;
-    initComp2Param.compareOutputMode = TIMER_A_OUTPUTMODE_OUTBITVALUE;
-    initComp2Param.compareValue = COMPARE_VALUE;
-    Timer_A_initCompareMode(TIMER_A1_BASE, &initComp2Param);
-
-
-    Timer_A_startCounter( TIMER_A1_BASE,
-            TIMER_A_CONTINUOUS_MODE
-    );
-    // ==========================================================================================
+    initComp2Param.compareRegister = TIMER_A_CAPTURECOMPARE_REGISTER_2;
+    initComp2Param.compareInterruptEnable = TIMER_A_CAPTURECOMPARE_INTERRUPT_DISABLE;
+    initComp2Param.compareOutputMode = TIMER_A_OUTPUTMODE_RESET_SET;
 
     PMM_unlockLPM5();           // Need this for LED to turn on- in case of "abnormal off state"
+    setPWM();
+
     __bis_SR_register(LPM4_bits + GIE);     // Need this for interrupts or else "abnormal termination"
     __no_operation();           //For debugger
 }
@@ -175,7 +122,7 @@ void Brake(){
     // Initialize speed to 0 m/s
 }
 void goForward(){
-    direction_state = 1;
+    //direction_state = 1;
     // set Motors A and B forward
     // Motor A - Counter-Clockwise
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - Low
@@ -186,7 +133,7 @@ void goForward(){
 }
 
 void turnRight(){
-    direction_state = 2;
+    //direction_state = 2;
     // set Motors A backward and Motor B forward
     // Motor A - Clockwise
     GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
@@ -197,7 +144,7 @@ void turnRight(){
 }
 
 void turnLeft(){
-    direction_state = 3;
+    //direction_state = 3;
     // set Motor A forward and Motor B backward
     // Motor A - Counter-Clockwise
     GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - Low
@@ -208,7 +155,8 @@ void turnLeft(){
 }
 
 void goBackwards(){
-    direction_state = 4;
+    //direction_state = 4;
+    setPWM();
     // set Motors A and B backwards
     // Motor A - Clockwise
     GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN0); // Motor A Input 1 - High
@@ -220,8 +168,8 @@ void goBackwards(){
 
 
 void setPWM(){
-    initCompParam.compareValue = highPeriod;
-    Timer_A_initCompareMode(TIMER_A1_BASE, &initCompParam);
+    initComp2Param.compareValue = 600;
+    Timer_A_initCompareMode(TIMER_A1_BASE, &initComp2Param);
     _delay_cycles(2000);
 }
 void Key()
@@ -230,7 +178,7 @@ void Key()
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
             if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
                 LCD_Clear();
-                if (speed < 6) {
+                if (speed < 9) {
                     speed++;
                     highPeriod = 100 * speed;
                     goForward();
@@ -287,44 +235,12 @@ void Key()
                             if (speed == 0) {
                                 toggle_direction_LEDs();
                             }
-                            LCD_Display_Buttons(1);
-                        }
+                            LCD_Display_Buttons(1);                    }
                 }
             }
         }
         highPeriod = 100 * speed;
         setRowsLow();
-}
-void determine_traveling_speed(){
-    switch(speed){
-        case -1:
-            current_speed = 0;
-            break;
-        case 0:
-            current_speed = 0;
-            break;
-        case 1:
-            current_speed = 0.13;
-            break;
-        case 2:
-            current_speed = 0.29;
-            break;
-        case 3:
-            current_speed = 0.44;
-            break;
-        case 4:
-            current_speed = 0.58;
-            break;
-        case 5:
-            current_speed = 0.71;
-            break;
-        case 6:
-            current_speed = 0.72;
-            break;
-        default:
-            current_speed = 0;
-            break;
-    }
 }
 
 #pragma vector = PORT1_VECTOR       // Using PORT1_VECTOR interrupt because P1.5 is in port 1
@@ -343,43 +259,3 @@ __interrupt void PORT2_ISR(void)
     setPWM();
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN7);
 }
-
-//*****************************************************************************
-//This is the TIMER1_A0 interrupt vector service routine.
-//******************************************************************************
-#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=TIMER1_A0_VECTOR
-__interrupt
-#elif defined(__GNUC__)
-__attribute__((interrupt(TIMER1_A0_VECTOR)))
-#endif
-void TIMER1_A0_ISR (void)
-{
-    uint16_t compVal = Timer_A_getCaptureCompareCount(TIMER_A1_BASE,
-                TIMER_A_CAPTURECOMPARE_REGISTER_0)
-                + COMPARE_VALUE;
-
-    //Toggle LED1
-    if(timed_counter >= 6){ // 2.5 s per 60 s slow
-//        GPIO_toggleOutputOnPin(
-//            GPIO_PORT_LED1,
-//            GPIO_PIN_LED1
-//            );
-        timed_counter = 0;
-        determine_traveling_speed();
-        distance_traveled += current_speed*1.04;
-        LCD_Display_float(distance_traveled);
-        //poll();
-    }
-    else{
-        timed_counter += 1;
-    }
-    setPWM();
-    //Add Offset to CCR0
-    Timer_A_setCompareValue(TIMER_A1_BASE,
-        TIMER_A_CAPTURECOMPARE_REGISTER_0,
-        compVal
-        );
-}
-
-
