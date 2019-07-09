@@ -259,15 +259,19 @@ void Key()
                                 goForward();
                             }
                             if (speed >= 0) {
-                                LCD_Display_digit(pos6, speed);
+//                                LCD_Display_digit(pos6, speed);
+                                LCD_Display_battery(battery, speed);
                             } else if (speed == -1){
-                                LCD_Display_letter(pos6, 17); // R
+//                                LCD_Display_letter(pos6, 17); // R
+                                LCD_Display_R();
                                 goBackwards();
                             }
                             if (speed == 0) {
                                 toggle_direction_LEDs();
+                                LCD_Display_Buttons(18);
                             }
-                            LCD_Display_Buttons(1);                    }
+//                            LCD_Display_Buttons(1);
+                        }
                 }
             }
         }
