@@ -124,8 +124,7 @@ void main (void)
 
     //==========================================================================================
 
-    glow(); // tight-poll the ultrasonic sensor
->>>>>>>>> Temporary merge branch 2
+    //glow(); // tight-poll the ultrasonic sensor
 
     //Start timer in continuous mode sourced by SMCLK
     Timer_A_initContinuousModeParam initContParam = {0};
@@ -282,7 +281,7 @@ void Key()
                             if (speed == 0) {
                                 toggle_direction_LEDs();
                             }
-                            LCD_Display_Buttons(1);
+                            //LCD_Display_Buttons(1);
                         }
                 }
             }
@@ -370,7 +369,7 @@ void TIMER0_A0_ISR (void)
         timed_counter = 0;
         determine_traveling_speed();
         distance_traveled += current_speed*1.04;
-        //LCD_Display_float(distance_traveled);
+        LCD_Display_float(distance_traveled);
         //poll();
     }
     else{
