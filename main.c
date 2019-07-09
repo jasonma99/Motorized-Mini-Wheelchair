@@ -52,8 +52,8 @@ void main (void)
     speed = 0;
     highPeriod = 0;
     direction_state = 0;
-    //LCD_Display_Buttons(1); // SPEED
-    //LCD_Display_digit(pos6, speed); // 0
+    LCD_Display_Buttons(1); // SPEED
+    LCD_Display_digit(pos6, speed); // 0
 
     P1DIR |= 0x01;                          // Set P1.0 to output direction
     P4DIR |= 0x01;                          // Set P2.0 to output direction
@@ -67,7 +67,8 @@ void main (void)
     setRowsLow();
 
     // COLUMNS ARE ISR TRIGGERS
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN5, GPIO_PRIMARY_MODULE_FUNCTION);     // Column 1: Input direction
+
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN5, GPIO_PRIMARY_MODULE_FUNCTION);     // Column 2: Input direction
     GPIO_selectInterruptEdge(GPIO_PORT_P1, GPIO_PIN5, GPIO_HIGH_TO_LOW_TRANSITION);
     GPIO_setAsInputPinWithPullUpResistor(GPIO_PORT_P1, GPIO_PIN5);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN5);
@@ -225,7 +226,7 @@ void goBackwards(){
 
 
 void setPWM(){
-    initComp2Param.compareValue = 600;
+    initComp2Param.compareValue = highPeriod;
     Timer_A_initCompareMode(TIMER_A1_BASE, &initComp2Param);
     _delay_cycles(2000);
 }
@@ -240,8 +241,8 @@ void Key()
                     highPeriod = 100 * speed;
                     goForward();
                 }
-                //LCD_Display_digit(pos6, speed);
-                //LCD_Display_Buttons(1);
+                LCD_Display_digit(pos6, speed);
+                LCD_Display_Buttons(1);
                 if (speed == 1) {
                     toggle_direction_LEDs();
                 }
@@ -249,10 +250,10 @@ void Key()
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
                     LCD_Clear();
-//                    LCD_Display_letter(pos1, 11); // L
-//                    LCD_Display_letter(pos2, 4); // E
-//                    LCD_Display_letter(pos3, 5); // F
-//                    LCD_Display_letter(pos4, 19); // T
+                    LCD_Display_letter(pos1, 11); // L
+                    LCD_Display_letter(pos2, 4); // E
+                    LCD_Display_letter(pos3, 5); // F
+                    LCD_Display_letter(pos4, 19); // T
                     P1OUT |= 0x01; // turn on red LED P1.0
                     P4OUT &= 0x00; // turn off green LED P4.0
                     turnLeft();
@@ -263,11 +264,11 @@ void Key()
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
                     LCD_Clear();
-//                    LCD_Display_letter(pos1, 17); // R
-//                    LCD_Display_letter(pos2, 8); // I
-//                    LCD_Display_letter(pos3, 6); // G
-//                    LCD_Display_letter(pos4, 7); // H
-//                    LCD_Display_letter(pos5, 19); // T
+                    LCD_Display_letter(pos1, 17); // R
+                    LCD_Display_letter(pos2, 8); // I
+                    LCD_Display_letter(pos3, 6); // G
+                    LCD_Display_letter(pos4, 7); // H
+                    LCD_Display_letter(pos5, 19); // T
                     P1OUT |= 0x01; // turn on red LED P1.0
                     P4OUT &= 0x00; // turn off green LED P4.0
                     turnRight();
@@ -284,20 +285,21 @@ void Key()
                                 goForward();
                             }
                             if (speed >= 0) {
-//                                LCD_Display_digit(pos6, speed);
+                                LCD_Display_digit(pos6, speed);
                             } else if (speed == -1){
-//                                LCD_Display_letter(pos6, 17); // R
+                                LCD_Display_letter(pos6, 17); // R
                                 goBackwards();
                             }
                             if (speed == 0) {
                                 toggle_direction_LEDs();
                             }
-//                            LCD_Display_Buttons(1);
+                            LCD_Display_Buttons(1);
                         }
                 }
             }
         }
         highPeriod = 100 * speed;
+        setPWM();
         setRowsLow();
 }
 void determine_traveling_speed(){
@@ -336,7 +338,6 @@ void determine_traveling_speed(){
 __interrupt void PORT1_ISR(void)
 {
     Key();
-    setPWM();
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN5);
     GPIO_clearInterrupt(GPIO_PORT_P1, GPIO_PIN6);
 }
@@ -345,7 +346,6 @@ __interrupt void PORT1_ISR(void)
 __interrupt void PORT2_ISR(void)
 {
     Key();
-    setPWM();
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN7);
 }
 
@@ -373,14 +373,13 @@ void TIMER0_A0_ISR (void)
         timed_counter = 0;
         determine_traveling_speed();
         distance_traveled += current_speed*1.04;
-        LCD_Display_float(distance_traveled);
+        //LCD_Display_float(distance_traveled);
         //poll();
     }
     else{
         timed_counter += 1;
     }
     setPWM();
-    speed = 6;
     //Add Offset to CCR0
     Timer_A_setCompareValue(TIMER_A0_BASE,
         TIMER_A_CAPTURECOMPARE_REGISTER_0,
