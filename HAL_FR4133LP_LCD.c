@@ -105,8 +105,9 @@ const char addr[6]=
  4
 };
 
-const char battery_speed[6][2] =
+const char battery_speed[7][2] =
 {
+     {0x00, 0x01},   // speed 0
      {0x00, 0x03},   // speed 1
      {0x20, 0x03},   // speed 2
      {0x20, 0x07},   // speed 3
@@ -177,6 +178,7 @@ void LCD_Display_battery(unsigned char pos, unsigned char ch)
 void LCD_Display_R()
 {
     LCDMEM[12] = 0x02;
+    LCDMEM[13] = 0x01;
 }
 
 void LCD_Display_float(double gg){
@@ -311,11 +313,13 @@ void LCD_Display_Buttons(unsigned char btn)
 	    LCD_Display_letter(pos3,0); //A
 	    LCD_Display_letter(pos4,2); //C
 	    LCD_Display_letter(pos5,10); //K
+	    break;
 	case 18:
 	    LCD_Display_letter(pos2,18); //S
 	    LCD_Display_letter(pos3,19); //T
 	    LCD_Display_letter(pos4,14); //O
 	    LCD_Display_letter(pos5,15); //P
+	    break;
 	default:
 		LCD_Display_letter(pos1,12);//M
 		LCD_Display_letter(pos2,18);//S

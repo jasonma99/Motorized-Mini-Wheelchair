@@ -38,7 +38,7 @@ void main (void)
     speed = 0;
     highPeriod = 0;
     direction_state = 0;
-    LCD_Display_Buttons(1); // SPEED
+//    LCD_Display_Buttons(1); // SPEED
     LCD_Display_digit(pos6, speed); // 0
 
     P1DIR |= 0x01;                          // Set P1.0 to output direction
@@ -208,28 +208,19 @@ void Key()
         if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_LOW){     // Column 1 to GND
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
             if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
-//                LCD_Clear();
+                LCD_Clear();
                 if (speed < 6) {
                     speed++;
                     highPeriod = 100 * speed;
                     goForward();
                 }
-//                LCD_Display_digit(pos6, speed);
                 LCD_Display_battery(battery, speed);
-//                LCD_Display_Buttons(1);/
-                if (speed == 1) {
-                    toggle_direction_LEDs();
-                }
             } else {
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
-                    LCD_Clear();
-                    LCD_Display_letter(pos1, 11); // L
-                    LCD_Display_letter(pos2, 4); // E
-                    LCD_Display_letter(pos3, 5); // F
-                    LCD_Display_letter(pos4, 19); // T
-                    P1OUT |= 0x01; // turn on red LED P1.0
-                    P4OUT &= 0x00; // turn off green LED P4.0
+//                    LCD_Clear();
+                    LCD_Display_battery(battery, 0);
+                    speed  = 0;
                     turnLeft();
                 }
             }
@@ -237,14 +228,9 @@ void Key()
             if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_LOW) {     // Column 2 to GND
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
-                    LCD_Clear();
-                    LCD_Display_letter(pos1, 17); // R
-                    LCD_Display_letter(pos2, 8); // I
-                    LCD_Display_letter(pos3, 6); // G
-                    LCD_Display_letter(pos4, 7); // H
-                    LCD_Display_letter(pos5, 19); // T
-                    P1OUT |= 0x01; // turn on red LED P1.0
-                    P4OUT &= 0x00; // turn off green LED P4.0
+//                    LCD_Clear();
+                    LCD_Display_battery(battery, 0);
+                    speed = 0;
                     turnRight();
                 } else {
                         GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
@@ -259,21 +245,22 @@ void Key()
                                 goForward();
                             }
                             if (speed >= 0) {
-//                                LCD_Display_digit(pos6, speed);
                                 LCD_Display_battery(battery, speed);
                             } else if (speed == -1){
-//                                LCD_Display_letter(pos6, 17); // R
                                 LCD_Display_R();
                                 goBackwards();
                             }
-                            if (speed == 0) {
-                                toggle_direction_LEDs();
-                                LCD_Display_Buttons(18);
-                            }
-//                            LCD_Display_Buttons(1);
                         }
                 }
             }
+        }
+
+        if (speed <= 0){
+            P1OUT |= 0x01; // turn on red LED P1.0
+            P4OUT &= 0xFE; // turn off green LED P4.0
+        } else{
+            P1OUT &= 0xFE; // turn off red LED P1.0
+            P4OUT |= 0x01; // turn on green LED P4.0
         }
         highPeriod = 100 * speed;
         setRowsLow();
