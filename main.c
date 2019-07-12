@@ -247,8 +247,7 @@ void Key()
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
 //                    LCD_Clear();
-                    LCD_Display_battery(battery, 0);
-                    speed  = 0;
+                    LCD_Display_battery(battery, speed);
                     turnLeft();
                 }
             }
@@ -257,8 +256,7 @@ void Key()
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
 //                    LCD_Clear();
-                    LCD_Display_battery(battery, 0);
-                    speed = 0;
+                    LCD_Display_battery(battery, speed);
                     turnRight();
                 } else {
                         GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
@@ -278,16 +276,13 @@ void Key()
                                 LCD_Display_R();
                                 goBackwards();
                             }
-                            if (speed == 0) {
-                                toggle_direction_LEDs();
-                            }
                             //LCD_Display_Buttons(1);
                         }
                 }
             }
         }
 
-        if (speed <= 0){
+        if (speed <= 0 || direction_state == 2 || direction_state == 3){ // we're not going forward or we're turning left or right
             P1OUT |= 0x01; // turn on red LED P1.0
             P4OUT &= 0xFE; // turn off green LED P4.0
         } else{
