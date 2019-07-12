@@ -21,6 +21,10 @@ void goBackwards();
 void setPWM();
 void Brake();
 
+void refresh_UI_distance();
+void refresh_motor_speed();
+void refresh_UI_speed();
+
 void poll();
 void determine_traveling_speed();
 
@@ -231,7 +235,7 @@ void setPWM(){
     Timer_A_initCompareMode(TIMER_A1_BASE, &initComp2Param);
     _delay_cycles(2000);
 }
-void Key()
+void Key() // maps keypad interrupts to speed and direction logic
 {
         if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_LOW){     // Column 1 to GND
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
@@ -239,15 +243,11 @@ void Key()
                 LCD_Clear();
                 if (speed < 6) {
                     speed++;
-                    highPeriod = 100 * speed;
                     goForward();
                 }
-                LCD_Display_battery(battery, speed);
             } else {
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
-//                    LCD_Clear();
-                    LCD_Display_battery(battery, speed);
                     turnLeft();
                 }
             }
@@ -255,44 +255,59 @@ void Key()
             if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_LOW) {     // Column 2 to GND
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
-//                    LCD_Clear();
-                    LCD_Display_battery(battery, speed);
                     turnRight();
                 } else {
                         GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
                         if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
                             LCD_Clear();
-                            if (speed > -1) {
-                                speed--;
-                                highPeriod = 100 * speed;
-                                if(highPeriod <= 0){
-                                    highPeriod = 0;
-                                }
+                            speed--;
+                            if (speed >= 0) {
                                 goForward();
                             }
-                            if (speed >= 0) {
-                                LCD_Display_battery(battery, speed);
-                            } else if (speed == -1){
-                                LCD_Display_R();
+                            else {
+                                speed = -1; // this ensures that speed can never be less than -1
                                 goBackwards();
                             }
-                            //LCD_Display_Buttons(1);
                         }
                 }
             }
         }
 
-        if (speed <= 0 || direction_state == 2 || direction_state == 3){ // we're not going forward or we're turning left or right
-            P1OUT |= 0x01; // turn on red LED P1.0
-            P4OUT &= 0xFE; // turn off green LED P4.0
-        } else{
-            P1OUT &= 0xFE; // turn off red LED P1.0
-            P4OUT |= 0x01; // turn on green LED P4.0
-        }
-        highPeriod = 100 * speed;
-        setPWM();
-        setRowsLow();
+        refresh_motor_speed();
+        refresh_UI_speed();
+
+        setRowsLow(); // required for keypad algorithm
 }
+
+void refresh_motor_speed() {
+    highPeriod = 100 * speed;
+    setPWM();
+}
+
+void refresh_UI_speed() { // called on keypad interrupt and periodic polling of distance sensor
+    if (speed >= 0) {
+        LCD_Display_battery(battery, speed);
+    } else if (speed == -1){
+        LCD_Display_R();
+    }
+    if (speed <= 0 || direction_state == 2 || direction_state == 3){ // we're not going forward or we're turning left or right
+        P1OUT |= 0x01; // turn on red LED P1.0
+        P4OUT &= 0xFE; // turn off green LED P4.0
+    } else{
+        P1OUT &= 0xFE; // turn off red LED P1.0
+        P4OUT |= 0x01; // turn on green LED P4.0
+    }
+}
+
+/* This is only called on periodic polling of distance sensor, since determine_travelling_speed
+ * is only calibrated on timerA0ISR but not keypad interrupts
+ */
+void refresh_UI_distance() {
+    determine_traveling_speed();
+    distance_traveled += current_speed*1.04;
+    LCD_Display_float(distance_traveled);
+}
+
 void determine_traveling_speed(){
     switch(speed){
         case -1:
@@ -357,21 +372,13 @@ void TIMER0_A0_ISR (void)
 
     //Toggle LED1
     if(timed_counter >= 6){ // 2.5 s per 60 s slow
-//        GPIO_toggleOutputOnPin(
-//            GPIO_PORT_LED1,
-//            GPIO_PIN_LED1
-//            );
         timed_counter = 0;
 
         poll(); // check distance sensor if we're close to an obstacle
-        highPeriod = 100 * speed; // set the PWM/motor speed
-        LCD_Display_battery(battery, speed); // refresh the UI after polling, necessary after every interrupt because we don't have a while(1) loop in our code
 
-        determine_traveling_speed();
-        distance_traveled += current_speed*1.04;
-        LCD_Display_float(distance_traveled);
-
-
+        refresh_UI_distance();
+        refresh_motor_speed();
+        refresh_UI_speed();
     }
     else{
         timed_counter += 1;
