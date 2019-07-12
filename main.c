@@ -240,7 +240,6 @@ void Key() // maps keypad interrupts to speed and direction logic
         if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_LOW){     // Column 1 to GND
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
             if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
-                LCD_Clear();
                 if (speed < 6) {
                     speed++;
                     goForward();
@@ -248,6 +247,9 @@ void Key() // maps keypad interrupts to speed and direction logic
             } else {
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
+                    if (speed < 0){ // if going backwards, turn with speed 1
+                        speed = 1;
+                    }
                     turnLeft();
                 }
             }
@@ -255,11 +257,13 @@ void Key() // maps keypad interrupts to speed and direction logic
             if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_LOW) {     // Column 2 to GND
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
+                    if (speed < 0){ // if going backwards, turn with speed 1
+                        speed = 1;
+                    }
                     turnRight();
                 } else {
                         GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
                         if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
-                            LCD_Clear();
                             speed--;
                             if (speed >= 0) {
                                 goForward();
@@ -287,7 +291,7 @@ void refresh_motor_speed() {
 void refresh_UI_speed() { // called on keypad interrupt and periodic polling of distance sensor
     if (speed >= 0) {
         LCD_Display_battery(battery, speed);
-    } else if (speed == -1){
+    } else if (direction_state == 4){ // must be going backwards
         LCD_Display_R();
     }
     if (speed <= 0 || direction_state == 2 || direction_state == 3){ // we're not going forward or we're turning left or right
