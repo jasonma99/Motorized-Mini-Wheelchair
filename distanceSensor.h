@@ -14,7 +14,8 @@
 #define MAX_DIST 23200
 #define SPEED_OF_SOUND 340
 
-int direction_state;
+extern int direction_state;
+extern int speed;
 
 void poll();
 void Forward();
@@ -44,15 +45,14 @@ void poll() {
     pulseWidth = timeElapsed;
 
     if (pulseWidth < MAX_DIST/1600) { // magic number
-        GPIO_setOutputHighOnPin(GPIO_PORT_P5, GPIO_PIN0);
         // Kill the motors
         GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0);
         GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1);
         GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN2);
         GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN1);
+        speed = 0;
     }
     else {
-        GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN0);
         switch(direction_state){
             case 1:
                 Forward();

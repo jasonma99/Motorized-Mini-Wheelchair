@@ -27,7 +27,7 @@ void determine_traveling_speed();
 char pressedKey;
 int speed;
 int highPeriod;
-extern int direction_state;
+int direction_state;
 int timed_counter;
 double distance_traveled;
 double current_speed;
@@ -362,10 +362,16 @@ void TIMER0_A0_ISR (void)
 //            GPIO_PIN_LED1
 //            );
         timed_counter = 0;
+
+        poll(); // check distance sensor if we're close to an obstacle
+        highPeriod = 100 * speed; // set the PWM/motor speed
+        LCD_Display_battery(battery, speed); // refresh the UI after polling, necessary after every interrupt because we don't have a while(1) loop in our code
+
         determine_traveling_speed();
         distance_traveled += current_speed*1.04;
         LCD_Display_float(distance_traveled);
-        //poll();
+
+
     }
     else{
         timed_counter += 1;
