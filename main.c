@@ -241,15 +241,15 @@ void Key() // maps keypad interrupts to speed and direction logic
             GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
             if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
                 if (speed < 6) {
-                    speed++;
+                    if (direction_state != 2 && direction_state != 3){ // if not turning, then can increment speed
+                        speed++;
+                    }
                     goForward();
                 }
             } else {
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P1, GPIO_PIN5) == GPIO_INPUT_PIN_HIGH) { // Column 1 to HIGH
-                    if (speed < 0){ // if going backwards, turn with speed 1
-                        speed = 1;
-                    }
+                    speed = 1;
                     turnLeft();
                 }
             }
@@ -257,9 +257,7 @@ void Key() // maps keypad interrupts to speed and direction logic
             if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_LOW) {     // Column 2 to GND
                 GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN4); // Row 1- HIGH
                 if (GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7) == GPIO_INPUT_PIN_HIGH) { // Column 2 to HIGH
-                    if (speed < 0){ // if going backwards, turn with speed 1
-                        speed = 1;
-                    }
+                    speed = 1;
                     turnRight();
                 } else {
                         GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN6); // Row 2- HIGH
@@ -284,7 +282,11 @@ void Key() // maps keypad interrupts to speed and direction logic
 }
 
 void refresh_motor_speed() {
-    highPeriod = 100 * speed;
+    if (speed < 0) {
+        highPeriod = 100 * 1;
+    } else {
+        highPeriod = 100 * speed;
+    }
     setPWM();
 }
 
@@ -380,7 +382,9 @@ void TIMER0_A0_ISR (void)
 
         poll(); // check distance sensor if we're close to an obstacle
 
-        refresh_UI_distance();
+        if (direction_state != 2 && direction_state != 3){ // increment distance only if not turning
+            refresh_UI_distance();
+        }
         refresh_motor_speed();
         refresh_UI_speed();
     }

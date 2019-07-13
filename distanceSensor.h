@@ -44,7 +44,10 @@ void poll() {
     };
     pulseWidth = timeElapsed;
 
-    if (pulseWidth < MAX_DIST/1600) { // magic number
+    /* - 1200 is a magic number
+     * - only kill the motors if we're not already backing up
+     */
+    if (pulseWidth < MAX_DIST/1200 && direction_state != 4) {
         // Kill the motors
         GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN0);
         GPIO_setOutputLowOnPin(GPIO_PORT_P5, GPIO_PIN1);
