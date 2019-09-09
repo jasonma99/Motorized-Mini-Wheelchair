@@ -7,7 +7,7 @@ Controllable wheelchair that automatically stops in front of obstacles. PCB cust
 
 ## Pictures
 1. Wheelchair and keypad controller close-up
-[photo 1](https://github.com/michaelhtleung/motorized-mini-wheelchair/blob/master/images/overview-IRL.png)
+![Wheelchair and keypad controller close-up](https://github.com/michaelhtleung/motorized-mini-wheelchair/blob/master/images/overview-IRL.png)
 
 2. UI when driving in reverse
 
